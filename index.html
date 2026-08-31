@@ -9,66 +9,56 @@
 <!-- ============================================================
   HOW TO EDIT THIS SITE
   1. Scroll to the "SITE CONFIG" block inside the <script> tag near
-     the bottom of this file. Change name, title, intro, links and
-     project entries there — the whole page is generated from it.
+     the bottom of this file. Everything on the page — text, links,
+     projects, videos, résumé — is generated from that one object.
 
-  2. TO USE YOUR OWN RENDER IMAGES (instead of a link):
-       a) Next to this index.html file, create a folder named
-          "images".
-       b) Export your renders as .jpg or .webp (compress them —
-          aim under ~600KB each so the site stays fast; a tool
-          like squoosh.app works well for this).
-       c) Drop the files into the "images" folder, e.g.:
-             /images/ashen-warden-cover.jpg
-             /images/ashen-warden-1.jpg
-             /images/ashen-warden-2.jpg
-       d) In CONFIG below, point "image" and "gallery" at those
-          files with a relative path, e.g.:
-             image: "images/ashen-warden-cover.jpg"
-             gallery: ["images/ashen-warden-1.jpg", "images/ashen-warden-2.jpg"]
-       Cover images look best around a 4:5 portrait crop; gallery
-       images look best around 16:9.
-       If a path is ever wrong, the card will show a soft glass
-       placeholder with the project title instead of a broken icon.
+  2. IMAGES: replace the picsum.photos placeholder URLs with your
+     own renders. Either host images in an /images folder next to
+     this file ("images/my-render.jpg") or use hosted URLs.
 
-  3. TO DEPLOY ON VERCEL:
-       - Put index.html AND the images folder together in one
-         project folder.
-       - Go to vercel.com → "Add New Project" → drag that whole
-         folder in (or run `vercel` from inside it with the CLI).
-       - No build step needed — it deploys as a static site, and
-         the images folder goes up along with it automatically.
+  3. VIDEOS: set a project's "video" field to a URL ending in
+     .mp4 / .webm / .mov (e.g. "videos/turntable.mp4"). It shows a
+     play badge on that project's card in the Renders carousel and
+     appears as a playable clip first in that project's modal.
+     You can also drop video URLs directly into a project's
+     "gallery" array — anything ending in .mp4/.webm/.mov is
+     treated as video automatically.
+
+  4. RÉSUMÉ: put your résumé PDF next to this file (e.g. resume.pdf)
+     and set CONFIG.resumeUrl to that filename. The "Résumé" buttons
+     in the nav, hero and contact section will download it directly
+     — no backend needed.
+
+  5. DEPLOY ON VERCEL: put this file (as index.html) plus your
+     /images, /videos and resume.pdf in one folder. Go to vercel.com
+     → "Add New Project" → drag the folder in (or run `vercel` from
+     inside it with the CLI). No build step required.
 ============================================================ -->
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <style>
   :root{
-    --bg: #07080b;
-    --bg-2: #0b0d12;
-    --text: #f1eee6;
-    --text-dim: #a7abb5;
-    --text-faint: #5c606c;
-
-    --key: #d9a969;      /* warm key light — bronze/amber */
-    --key-soft: rgba(217,169,105,0.16);
-    --rim: #7086ff;      /* cool rim light — violet-blue */
-    --rim-soft: rgba(112,134,255,0.16);
-
-    --axis-x: #e0625f; --axis-y: #6ec26a; --axis-z: #5fa8e0;
-
+    --bg: #07060c;
+    --text: #f2eef7;
+    --text-dim: #a9a7b8;
+    --text-faint: #6a6879;
+    --accent: #ff3d8a;       /* deep pink */
+    --accent-soft: rgba(255,61,138,0.16);
+    --blue: #3f6df8;         /* deep blue */
+    --violet: #9b4dff;       /* pink↔blue bridge */
     --glass-bg: rgba(255,255,255,0.045);
-    --glass-bg-strong: rgba(16,17,22,0.55);
+    --glass-bg-strong: rgba(255,255,255,0.08);
     --glass-border: rgba(255,255,255,0.10);
-    --glass-shadow: 0 8px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
-
+    --glass-shadow: 0 12px 40px rgba(0,0,0,0.5);
     --display: 'Space Grotesk', sans-serif;
     --body: 'Inter', sans-serif;
     --mono: 'JetBrains Mono', monospace;
-    --radius: 14px;
-    --radius-sm: 8px;
+    --radius: 18px;
+    --radius-sm: 10px;
   }
 
   *{ margin:0; padding:0; box-sizing:border-box; }
@@ -84,229 +74,283 @@
   @media (prefers-reduced-motion: reduce){
     *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
   }
+
   a{ color:inherit; text-decoration:none; }
   img{ display:block; max-width:100%; }
-  button{ font-family:inherit; cursor:pointer; }
-  ::selection{ background:var(--key); color:#0d0e10; }
-  :focus-visible{ outline:2px solid var(--key); outline-offset:3px; }
+  button{ font-family:inherit; cursor:pointer; background:none; border:none; }
+  ::selection{ background:var(--accent); color:#0a0a0c; }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
 
-  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; position:relative; z-index:2; }
   .mono{ font-family:var(--mono); letter-spacing:0.02em; }
   .eyebrow{
     font-family:var(--mono); font-size:12px; letter-spacing:0.14em; text-transform:uppercase;
-    color:var(--key); display:flex; align-items:center; gap:10px; margin-bottom:18px;
+    color:var(--text); display:flex; align-items:center; gap:10px; margin-bottom:18px;
   }
-  .eyebrow::before{ content:''; width:22px; height:1px; background:var(--key); }
+  .eyebrow::before{ content:''; width:22px; height:1px; background:var(--accent); }
+  .eyebrow.center{ justify-content:center; }
+  .eyebrow.center::before{ display:none; }
 
-  /* ---------- AMBIENT BACKGROUND (studio lighting) ---------- */
-  .ambient{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
-  .orb{ position:absolute; border-radius:50%; filter:blur(90px); opacity:0.55; will-change:transform; }
-  .orb-key{ width:640px; height:640px; background:radial-gradient(circle, var(--key) 0%, transparent 70%); top:-160px; left:-120px; animation:drift1 26s ease-in-out infinite; }
-  .orb-rim{ width:560px; height:560px; background:radial-gradient(circle, var(--rim) 0%, transparent 70%); bottom:-200px; right:-140px; animation:drift2 32s ease-in-out infinite; }
-  .orb-mid{ width:420px; height:420px; background:radial-gradient(circle, var(--rim) 0%, transparent 70%); top:40%; left:60%; opacity:0.28; animation:drift3 40s ease-in-out infinite; }
-  @keyframes drift1{ 0%,100%{ transform:translate(0,0) scale(1);} 50%{ transform:translate(80px,60px) scale(1.12);} }
-  @keyframes drift2{ 0%,100%{ transform:translate(0,0) scale(1);} 50%{ transform:translate(-70px,-50px) scale(1.08);} }
-  @keyframes drift3{ 0%,100%{ transform:translate(0,0);} 50%{ transform:translate(-100px,40px);} }
-  .grain{
-    position:fixed; inset:0; z-index:1; pointer-events:none; opacity:0.035; mix-blend-mode:overlay;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
-  /* cursor spotlight */
-  #spotlight{
-    position:fixed; inset:0; z-index:2; pointer-events:none;
-    background:radial-gradient(420px circle at var(--sx,50%) var(--sy,50%), rgba(255,255,255,0.06), transparent 70%);
-    transition:background .05s linear;
-  }
-  @media (hover:none){ #spotlight{ display:none; } }
-
-  /* ---------- GLASS UTILITY ---------- */
+  /* ---------- GLASS ---------- */
   .glass{
-    background:var(--glass-bg-strong);
-    -webkit-backdrop-filter:blur(20px) saturate(140%);
-    backdrop-filter:blur(20px) saturate(140%);
+    background:var(--glass-bg);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
     border:1px solid var(--glass-border);
-    box-shadow:var(--glass-shadow);
-    border-radius:var(--radius);
+    box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,0.06);
+    border-radius: var(--radius);
+  }
+  .glass-strong{ background:var(--glass-bg-strong); }
+
+  /* ---------- AMBIENT BACKGROUND ---------- */
+  .aurora{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  .blob{ position:absolute; border-radius:50%; filter:blur(130px); opacity:0.45; mix-blend-mode:screen; }
+  .blob-1{ width:640px; height:640px; background:var(--accent); top:-220px; left:-160px; animation:drift1 26s ease-in-out infinite; }
+  .blob-2{ width:580px; height:580px; background:var(--blue); bottom:-200px; right:-140px; animation:drift2 32s ease-in-out infinite; }
+  .blob-3{ width:440px; height:440px; background:var(--violet); top:38%; left:55%; animation:drift3 22s ease-in-out infinite; opacity:0.3; }
+  @keyframes drift1{ 0%,100%{ transform:translate(0,0) scale(1);} 50%{ transform:translate(80px,60px) scale(1.15);} }
+  @keyframes drift2{ 0%,100%{ transform:translate(0,0) scale(1);} 50%{ transform:translate(-70px,-40px) scale(1.1);} }
+  @keyframes drift3{ 0%,100%{ transform:translate(0,0) scale(1);} 50%{ transform:translate(-60px,50px) scale(0.9);} }
+  .grain-grid{
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size:64px 64px;
   }
 
-  main, header, footer{ position:relative; z-index:3; }
-
-  /* ---------- PRELOADER ---------- */
-  #preloader{
-    position:fixed; inset:0; z-index:999; background:var(--bg);
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
-    transition:opacity .6s ease, visibility .6s ease;
+  .cursor-glow{
+    position:fixed; top:0; left:0; width:520px; height:520px; margin:-260px 0 0 -260px;
+    background:radial-gradient(circle, rgba(255,61,138,0.16), transparent 70%);
+    pointer-events:none; z-index:3; mix-blend-mode:screen; will-change:transform;
   }
-  #preloader.hide{ opacity:0; visibility:hidden; }
-  .pre-label{ font-family:var(--mono); font-size:12px; letter-spacing:.14em; color:var(--text-faint); text-transform:uppercase; }
-  .pre-bar{ width:220px; height:2px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; }
-  .pre-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--key), var(--rim)); transition:width .15s ease; }
-  .pre-pct{ font-family:var(--mono); font-size:12px; color:var(--key); }
+  @media (hover:none){ .cursor-glow{ display:none; } }
+
+  .scroll-progress{
+    position:fixed; top:0; left:0; height:2.5px; width:0%; z-index:1000;
+    background:linear-gradient(90deg, var(--accent), var(--blue));
+  }
 
   /* ---------- NAV ---------- */
-  header{ position:fixed; top:16px; left:0; right:0; z-index:100; }
-  header .wrap{ padding:0 24px; }
-  nav.glass{
-    display:flex; align-items:center; justify-content:space-between; height:64px; padding:0 22px;
-    max-width:1132px; margin:0 auto; border-radius:999px;
+  header{ position:fixed; top:0; left:0; right:0; z-index:100; padding:16px 20px 0; }
+  nav.wrap.glass{
+    display:flex; align-items:center; justify-content:space-between; height:68px; padding:0 22px;
+    max-width:1180px;
   }
   .logo{ display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:600; font-size:16px; }
   .logo-mark{ width:26px; height:26px; }
-  .nav-links{ display:flex; gap:32px; font-size:14px; color:var(--text-dim); }
+  .nav-links{ display:flex; align-items:center; gap:22px; font-size:13.5px; color:var(--text-dim); }
   .nav-links a{ position:relative; padding:4px 0; transition:color .2s; }
   .nav-links a:hover{ color:var(--text); }
-  .nav-links a::after{ content:''; position:absolute; left:0; bottom:-2px; width:0; height:1px; background:var(--key); transition:width .25s; }
+  .nav-links a::after{ content:''; position:absolute; left:0; bottom:-2px; width:0; height:1px; background:var(--accent); transition:width .25s; }
   .nav-links a:hover::after{ width:100%; }
-  .nav-cta{
-    font-family:var(--mono); font-size:12px; letter-spacing:.05em; text-transform:uppercase;
-    border:1px solid var(--glass-border); color:var(--key); padding:9px 18px; border-radius:999px;
-    transition:all .25s; background:var(--key-soft);
+  .nav-actions{ display:flex; align-items:center; gap:10px; }
+  @media (max-width:920px){ .nav-actions{ display:none; } }
+  .btn-resume{
+    font-family:var(--mono); font-size:12px; letter-spacing:.04em; display:flex; align-items:center; gap:7px;
+    padding:9px 15px; border-radius:999px; color:var(--text); border:1px solid rgba(255,61,138,0.45);
+    background:rgba(255,61,138,0.09); transition:all .2s;
   }
-  .nav-cta:hover{ background:var(--key); color:#0d0e10; transform:translateY(-1px); box-shadow:0 6px 20px var(--key-soft); }
-  .nav-toggle{ display:none; flex-direction:column; gap:5px; background:none; border:none; padding:8px; }
+  .btn-resume:hover{ background:var(--accent); color:#fff; box-shadow:0 0 24px rgba(255,61,138,0.45); }
+  .nav-cta{
+    font-family:var(--mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase;
+    border:1px solid var(--glass-border); color:var(--text); padding:9px 16px; border-radius:999px;
+    transition:all .2s;
+  }
+  .nav-cta:hover{ border-color:var(--accent); color:var(--text); }
+  .nav-toggle{ display:none; flex-direction:column; gap:5px; padding:8px; }
   .nav-toggle span{ width:22px; height:1.5px; background:var(--text); display:block; }
   .mobile-menu{
-    display:none; position:fixed; top:96px; left:16px; right:16px; z-index:99;
-    flex-direction:column; padding:28px; gap:22px; font-family:var(--display); font-size:22px; border-radius:var(--radius);
+    display:none; position:fixed; inset:96px 16px auto 16px; z-index:99;
+    flex-direction:column; padding:28px; gap:20px; font-family:var(--display); font-size:20px;
   }
   .mobile-menu.open{ display:flex; }
+  .mobile-menu .btn-resume{ align-self:flex-start; }
 
-  /* ---------- HERO / VIEWPORT ---------- */
-  .viewport{
-    position:relative; min-height:100vh; display:flex; flex-direction:column; justify-content:center;
-    padding-top:76px; overflow:hidden;
-  }
-  .vp-corner{ position:absolute; font-family:var(--mono); font-size:11px; color:var(--text-faint); letter-spacing:.05em; z-index:3; }
-  .vp-corner.tl{ top:110px; left:32px; } .vp-corner.tr{ top:110px; right:32px; text-align:right; }
+  /* ---------- HERO ---------- */
+  .viewport{ position:relative; min-height:100vh; min-height:100svh; display:flex; flex-direction:column; justify-content:center; padding-top:76px; overflow:hidden; }
+  #hero-canvas{ position:absolute; inset:0; z-index:1; opacity:0.9; }
+  .vp-corner{ position:absolute; font-family:var(--mono); font-size:11px; color:var(--text-faint); letter-spacing:.05em; z-index:2; }
+  .vp-corner.tl{ top:100px; left:32px; } .vp-corner.tr{ top:100px; right:32px; text-align:right; }
   .vp-corner.bl{ bottom:32px; left:32px; } .vp-corner.br{ bottom:32px; right:32px; text-align:right; }
-  #coord-readout{ color:var(--key); }
+  #coord-readout{ color:var(--text); }
+  @media (max-width:760px){ .vp-corner{ display:none; } }
 
-  .gizmo{ position:absolute; top:150px; right:56px; width:96px; height:96px; z-index:3; transition:transform .06s linear; }
-  @media (max-width:860px){ .gizmo{ display:none; } }
-
-  .hero-inner{ position:relative; z-index:3; padding:0 32px; max-width:1180px; margin:0 auto; width:100%; }
-  .hero-name{
-    font-family:var(--display); font-weight:700; letter-spacing:-0.02em;
-    font-size:clamp(44px, 9vw, 108px); line-height:0.96; text-transform:uppercase;
-    will-change:transform;
-  }
-  .hero-name .accent-word{
-    background:linear-gradient(90deg, var(--key), var(--rim));
-    -webkit-background-clip:text; background-clip:text; color:transparent;
-  }
+  .hero-inner{ position:relative; z-index:2; padding:0 32px; max-width:1180px; margin:0 auto; width:100%; }
+  .hero-name{ font-family:var(--display); font-weight:700; letter-spacing:-0.02em; font-size:clamp(44px, 9vw, 104px); line-height:0.96; text-transform:uppercase; text-shadow:0 0 60px rgba(255,61,138,0.3); }
+  .hero-name .accent-word{ color:var(--text); text-shadow:0 0 30px rgba(255,61,138,0.55), 0 0 60px rgba(63,109,248,0.4); }
   .hero-role{ font-family:var(--mono); font-size:clamp(13px,1.6vw,16px); color:var(--text-dim); margin-top:22px; letter-spacing:.03em; }
-  .hero-intro{ max-width:520px; color:var(--text-dim); margin-top:22px; font-size:16px; }
-  .hero-cta{ display:flex; gap:16px; margin-top:38px; flex-wrap:wrap; }
-  .btn{
-    font-family:var(--mono); font-size:13px; letter-spacing:.05em; text-transform:uppercase;
-    padding:14px 26px; border-radius:999px; transition:transform .2s, box-shadow .2s, background .2s, color .2s;
-    display:inline-flex; align-items:center; gap:8px; position:relative;
-  }
-  .btn-primary{ background:linear-gradient(90deg, var(--key), #e9c98f); color:#0d0e10; }
-  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 10px 30px var(--key-soft); }
-  .btn-ghost{ border:1px solid var(--glass-border); color:var(--text); background:var(--glass-bg); backdrop-filter:blur(10px); }
-  .btn-ghost:hover{ border-color:var(--rim); color:var(--rim); transform:translateY(-2px); }
+  .hero-intro{ max-width:520px; color:var(--text-dim); margin-top:18px; font-size:16px; }
+  .hero-cta{ display:flex; gap:14px; margin-top:36px; flex-wrap:wrap; }
+  .btn{ font-family:var(--mono); font-size:13px; letter-spacing:.05em; text-transform:uppercase; padding:14px 26px; border-radius:999px; transition:all .25s; display:inline-flex; align-items:center; gap:8px; }
+  .btn-primary{ background:linear-gradient(120deg, var(--accent), var(--blue)); color:#fff; box-shadow:0 8px 30px rgba(255,61,138,0.3); }
+  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 12px 38px rgba(255,61,138,0.45); }
+  .btn-glass{ color:var(--text); }
+  .btn-glass:hover{ border-color:var(--accent); color:var(--text); transform:translateY(-2px); }
 
-  .scroll-cue{
-    position:absolute; bottom:36px; left:50%; transform:translateX(-50%); z-index:3;
-    display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-faint);
-    font-family:var(--mono); font-size:10px; letter-spacing:.15em; text-transform:uppercase;
-  }
-  .scroll-cue .line{ width:1px; height:34px; background:linear-gradient(var(--key), transparent); animation:pulse-line 2s ease-in-out infinite; }
+  .scroll-cue{ position:absolute; bottom:34px; left:50%; transform:translateX(-50%); z-index:2; display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--text-faint); font-family:var(--mono); font-size:10px; letter-spacing:.15em; text-transform:uppercase; }
+  .scroll-cue .line{ width:1px; height:34px; background:linear-gradient(var(--accent), transparent); animation:pulse-line 2s ease-in-out infinite; }
   @keyframes pulse-line{ 0%,100%{opacity:.3;} 50%{opacity:1;} }
 
   /* ---------- SECTION GENERIC ---------- */
-  section{ position:relative; padding:120px 0; }
-  .section-head{ display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:56px; flex-wrap:wrap; }
+  section{ position:relative; z-index:2; padding:110px 0; }
+  .section-head{ display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:52px; flex-wrap:wrap; }
   h2.section-title{ font-family:var(--display); font-weight:600; font-size:clamp(28px,4vw,44px); letter-spacing:-0.01em; }
   .reveal{ opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease; }
   .reveal.in{ opacity:1; transform:translateY(0); }
 
   /* ---------- ABOUT ---------- */
-  .about-grid{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:64px; align-items:start; }
-  @media (max-width:860px){ .about-grid{ grid-template-columns:1fr; } }
-  .about-text{ padding:36px; }
+  .about-grid{ display:grid; grid-template-columns:220px 1.05fr 0.85fr; gap:36px; align-items:start; }
+  @media (max-width:980px){
+    .about-grid{ grid-template-columns:200px 1fr; }
+    .stat-panel{ grid-column:1 / -1; }
+  }
+  @media (max-width:640px){
+    .about-grid{ grid-template-columns:1fr; justify-items:center; text-align:center; }
+    .about-photo{ justify-self:center; }
+    .stat-panel{ grid-column:auto; width:100%; }
+    .about-text{ text-align:left; }
+  }
+
+  .about-photo{ display:flex; flex-direction:column; align-items:center; }
+  .photo-frame{ position:relative; width:190px; height:190px; animation:photoFloat 6s ease-in-out infinite; }
+  @keyframes photoFloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+  .photo-frame .ring{
+    position:absolute; inset:0; border-radius:50%;
+    background:conic-gradient(from 0deg, var(--accent), var(--blue), var(--violet), var(--accent));
+    animation:spin 7s linear infinite;
+  }
+  @keyframes spin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+  .photo-frame .ring-mask{ position:absolute; inset:5px; border-radius:50%; background:var(--bg); }
+  .photo-frame img{
+    position:absolute; inset:13px; width:calc(100% - 26px); height:calc(100% - 26px); border-radius:50%;
+    object-fit:cover; box-shadow:0 10px 34px rgba(0,0,0,0.55);
+  }
+  .photo-frame .orbit{ position:absolute; inset:-16px; animation:spin 11s linear infinite reverse; pointer-events:none; }
+  .photo-frame .orbit-dot{
+    position:absolute; top:0; left:50%; width:10px; height:10px; margin-left:-5px; border-radius:50%;
+    background:var(--accent); box-shadow:0 0 10px var(--accent), 0 0 22px var(--blue);
+  }
+  .photo-status{
+    margin-top:24px; display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px;
+    font-family:var(--mono); font-size:11px; color:var(--text);
+  }
+  .status-dot{
+    width:7px; height:7px; border-radius:50%; background:#4ade80; box-shadow:0 0 8px #4ade80;
+    animation:pulseDot 1.8s ease-in-out infinite;
+  }
+  @keyframes pulseDot{ 0%,100%{ opacity:1; transform:scale(1); } 50%{ opacity:.5; transform:scale(0.8); } }
+
+  .about-text{ padding:40px; }
   .about-text p{ color:var(--text-dim); font-size:16px; margin-bottom:16px; max-width:56ch; }
   .about-text p:first-child{ color:var(--text); font-size:19px; font-family:var(--display); font-weight:400; line-height:1.5; }
-
-  /* marquee of software */
-  .marquee{ margin-top:28px; overflow:hidden; -webkit-mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
-  .marquee-track{ display:flex; gap:12px; width:max-content; animation:marquee 22s linear infinite; }
-  .marquee:hover .marquee-track{ animation-play-state:paused; }
-  .stack-tag{
-    font-family:var(--mono); font-size:12px; padding:8px 16px; border:1px solid var(--glass-border);
-    border-radius:999px; color:var(--text-dim); background:var(--glass-bg); white-space:nowrap;
-  }
-  @keyframes marquee{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
-
+  .stack-list{ display:flex; flex-wrap:wrap; gap:10px; margin-top:24px; }
+  .stack-tag{ font-family:var(--mono); font-size:12px; padding:8px 14px; border:1px solid var(--glass-border); border-radius:999px; color:var(--text-dim); background:rgba(255,255,255,0.03); }
   .stat-panel{ padding:32px; }
-  .stat-row{ display:flex; justify-content:space-between; align-items:baseline; padding:16px 0; border-bottom:1px solid rgba(255,255,255,0.08); font-family:var(--mono); font-size:13px; }
+  .stat-row{ display:flex; justify-content:space-between; padding:16px 4px; border-bottom:1px solid rgba(255,255,255,0.07); font-family:var(--mono); font-size:13px; }
   .stat-row:last-child{ border-bottom:none; }
   .stat-row span:first-child{ color:var(--text-faint); }
-  .stat-row .stat-value{ color:var(--key); font-size:20px; font-family:var(--display); font-weight:600; }
+  .stat-row span:last-child{ color:var(--text); font-size:16px; font-weight:600; }
 
-  /* ---------- WORK / FILTERS ---------- */
-  .filters{ display:flex; gap:10px; flex-wrap:wrap; }
-  .filter-btn{
-    font-family:var(--mono); font-size:12px; letter-spacing:.04em; text-transform:uppercase;
-    padding:9px 16px; border:1px solid var(--glass-border); border-radius:999px; color:var(--text-dim);
-    background:var(--glass-bg); backdrop-filter:blur(10px); transition:all .2s;
+  /* ---------- SOFTWARE (logo grid) ---------- */
+  .software-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(128px, 1fr)); gap:16px; }
+  .software-card{
+    display:flex; flex-direction:column; align-items:center; gap:14px; padding:26px 14px; text-align:center;
+    transition:transform .3s ease, box-shadow .3s ease, border-color .3s ease;
   }
-  .filter-btn:hover{ color:var(--text); border-color:var(--text-dim); }
-  .filter-btn.active{ background:linear-gradient(90deg, var(--key), #e9c98f); border-color:transparent; color:#0d0e10; }
+  .software-card:hover{ transform:translateY(-6px); box-shadow:var(--glass-shadow), 0 0 30px rgba(255,61,138,0.18); border-color:rgba(255,255,255,0.2); }
+  .software-logo{
+    width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-weight:700; font-size:17px; color:#fff; flex-shrink:0;
+    box-shadow:0 8px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  .software-logo img{ width:60%; height:60%; object-fit:contain; }
+  .software-name{ font-family:var(--mono); font-size:12px; color:var(--text-dim); }
 
-  .grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; }
-  @media (max-width:900px){ .grid{ grid-template-columns:repeat(2,1fr); } }
-  @media (max-width:600px){ .grid{ grid-template-columns:1fr; } }
+  /* ---------- EXPERIENCE (timeline) ---------- */
+  .experience-list{ position:relative; }
+  .timeline-track{ position:absolute; left:14px; top:8px; bottom:8px; width:1px; background:linear-gradient(var(--accent), var(--blue)); opacity:0.35; }
+  .timeline-item{ position:relative; margin-left:40px; padding:26px 28px; margin-bottom:18px; }
+  .timeline-item:last-child{ margin-bottom:0; }
+  .timeline-dot{
+    position:absolute; left:-33px; top:30px; width:13px; height:13px; border-radius:50%;
+    background:var(--accent); box-shadow:0 0 0 4px rgba(255,61,138,0.15), 0 0 14px var(--accent);
+  }
+  .timeline-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:10px; }
+  .timeline-role{ font-family:var(--display); font-weight:600; font-size:18px; color:var(--text); }
+  .timeline-company{ font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-top:5px; }
+  .timeline-period{ font-family:var(--mono); font-size:11px; color:var(--text-dim); white-space:nowrap; padding:6px 13px; border:1px solid var(--glass-border); border-radius:999px; }
+  .timeline-desc{ color:var(--text-dim); font-size:14.5px; max-width:64ch; }
+  @media (max-width:600px){
+    .timeline-track{ left:10px; }
+    .timeline-item{ margin-left:28px; padding:20px 20px; }
+    .timeline-dot{ left:-24px; top:24px; }
+  }
 
-  .card{
-    position:relative; aspect-ratio:4/5; overflow:hidden; cursor:pointer; perspective:800px;
-    border-radius:var(--radius); transform-style:preserve-3d; transition:transform .12s ease-out, box-shadow .3s;
+  /* ---------- RENDERS (coverflow carousel) ---------- */
+  .stage-heading{
+    font-family:var(--display); font-weight:700; font-size:clamp(32px,6vw,64px); text-transform:uppercase;
+    text-align:center; letter-spacing:-0.01em; margin-bottom:8px; text-shadow:0 0 50px rgba(255,61,138,0.35);
   }
-  .card:hover{ box-shadow:0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px var(--glass-border); }
-  .card-img-wrap{ position:absolute; inset:0; overflow:hidden; border-radius:var(--radius); }
-  .card img{ width:100%; height:100%; object-fit:cover; transition:transform .5s ease, filter .5s ease; filter:grayscale(30%) brightness(0.82); transform:scale(1.02); }
-  .card:hover img{ transform:scale(1.1); filter:grayscale(0%) brightness(1); }
-  .card-placeholder{
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:24px;
-    background:linear-gradient(135deg, var(--key-soft), var(--rim-soft)); font-family:var(--display); font-size:15px; color:var(--text-dim);
+  .stage-sub{ text-align:center; color:var(--text-faint); font-family:var(--mono); font-size:12px; margin-bottom:34px; }
+  .filters{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:44px; }
+  .filter-btn{ font-family:var(--mono); font-size:12px; letter-spacing:.04em; text-transform:uppercase; padding:9px 16px; border-radius:999px; color:var(--text-dim); background:rgba(255,255,255,0.03); border:1px solid var(--glass-border); transition:all .2s; }
+  .filter-btn:hover{ color:var(--text); }
+  .filter-btn.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+
+  .renders-stage{ position:relative; height:460px; margin:0 auto; max-width:1180px; touch-action:pan-y; perspective:1400px; overflow:hidden; }
+  @media (max-width:760px){ .renders-stage{ height:280px; } }
+  @media (max-width:420px){ .renders-stage{ height:230px; } }
+  .stage-track{ position:absolute; inset:0; transform-style:preserve-3d; }
+  .stage-card{
+    position:absolute; top:50%; left:50%; width:min(680px, 60%); aspect-ratio:16/9; border-radius:var(--radius);
+    overflow:hidden; cursor:pointer; transition:transform .65s cubic-bezier(.22,.9,.32,1), opacity .65s ease, box-shadow .4s;
+    background:#050408; border:1px solid var(--glass-border);
+    transform-style:preserve-3d; backface-visibility:hidden; will-change:transform, opacity;
   }
-  .card-overlay{
-    position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; padding:22px; border-radius:var(--radius);
-    background:linear-gradient(180deg, transparent 40%, rgba(6,7,10,0.92) 100%);
+  .stage-card img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .stage-card.active{
+    box-shadow: 0 0 0 1px rgba(255,61,138,0.55), 0 24px 70px rgba(255,61,138,0.22), 0 0 90px rgba(63,109,248,0.3);
+    border-color: rgba(255,255,255,0.18);
   }
-  .card-cat{ font-family:var(--mono); font-size:11px; color:var(--key); text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; }
-  .card-title{ font-family:var(--display); font-size:19px; font-weight:600; }
-  .card-index{ position:absolute; top:16px; left:16px; font-family:var(--mono); font-size:11px; color:var(--text-faint); z-index:2; }
+  .stage-card-overlay{
+    position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; padding:26px;
+    background:linear-gradient(180deg, transparent 45%, rgba(4,4,7,0.92) 100%);
+    opacity:0; transition:opacity .4s ease;
+  }
+  .stage-card.active .stage-card-overlay{ opacity:1; }
+  .card-cat{ font-family:var(--mono); font-size:11px; color:var(--text); opacity:0.8; text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; display:flex; align-items:center; gap:7px; }
+  .cat-dot{ display:inline-block; width:6px; height:6px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--blue)); flex-shrink:0; }
+  .card-title{ font-family:var(--display); font-size:19px; font-weight:600; color:var(--text); }
+  .card-video-badge{
+    position:absolute; top:14px; right:14px; z-index:2; width:32px; height:32px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--text);
+    background:rgba(6,6,10,0.55); border:1px solid var(--glass-border); backdrop-filter:blur(6px);
+  }
+  .stage-nav{
+    position:absolute; top:50%; transform:translateY(-50%); z-index:20; width:48px; height:48px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; color:var(--text); font-size:20px;
+  }
+  .stage-nav.prev{ left:-4px; } .stage-nav.next{ right:-4px; }
+  @media (max-width:900px){ .stage-nav{ display:none; } }
+  .stage-nav:hover{ border-color:var(--accent); color:var(--text); }
+  .stage-dots{ display:flex; justify-content:center; gap:8px; margin-top:30px; }
+  .stage-dot{ width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.18); transition:all .2s; }
+  .stage-dot.active{ background:var(--accent); width:22px; border-radius:5px; }
 
   /* ---------- MODAL ---------- */
-  .modal-backdrop{
-    position:fixed; inset:0; background:rgba(4,4,6,0.72); backdrop-filter:blur(6px); z-index:200;
-    display:none; align-items:center; justify-content:center; padding:24px;
-  }
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(3,3,6,0.75); backdrop-filter:blur(8px); z-index:200; display:none; align-items:center; justify-content:center; padding:24px; }
   .modal-backdrop.open{ display:flex; }
-  .modal{
-    max-width:920px; width:100%; max-height:88vh; overflow-y:auto;
-    transform:scale(0.94); opacity:0; transition:transform .3s ease, opacity .3s ease;
-  }
-  .modal-backdrop.open .modal{ transform:scale(1); opacity:1; }
-  .modal-img-wrap{ position:relative; aspect-ratio:16/9; background:var(--bg-2); border-radius:var(--radius) var(--radius) 0 0; overflow:hidden; }
-  .modal-img-wrap img{ width:100%; height:100%; object-fit:cover; }
-  .modal-nav{
-    position:absolute; top:50%; transform:translateY(-50%); background:rgba(10,11,14,0.55); border:1px solid var(--glass-border);
-    width:40px; height:40px; display:flex; align-items:center; justify-content:center; color:var(--text); border-radius:50%;
-    backdrop-filter:blur(8px);
-  }
-  .modal-nav:hover{ border-color:var(--key); color:var(--key); }
+  .modal{ max-width:920px; width:100%; max-height:88vh; overflow-y:auto; }
+  .modal-media-wrap{ position:relative; aspect-ratio:16/9; background:#000; border-radius:var(--radius) var(--radius) 0 0; overflow:hidden; }
+  .modal-media-wrap img, .modal-media-wrap video{ width:100%; height:100%; object-fit:cover; display:block; }
+  .modal-nav{ position:absolute; top:50%; transform:translateY(-50%); width:42px; height:42px; display:flex; align-items:center; justify-content:center; color:var(--text); border-radius:50%; z-index:2; }
+  .modal-nav:hover{ border-color:var(--accent); color:var(--text); }
   .modal-nav.prev{ left:16px; } .modal-nav.next{ right:16px; }
-  .modal-close{
-    position:absolute; top:16px; right:16px; z-index:2; background:rgba(10,11,14,0.55); border:1px solid var(--glass-border);
-    width:36px; height:36px; border-radius:50%; color:var(--text); display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px);
-  }
-  .modal-close:hover{ border-color:var(--key); color:var(--key); }
+  .modal-close{ position:absolute; top:16px; right:16px; z-index:3; width:38px; height:38px; border-radius:50%; color:var(--text); display:flex; align-items:center; justify-content:center; }
+  .modal-close:hover{ border-color:var(--accent); color:var(--text); }
   .modal-body{ padding:36px; }
-  .modal-cat{ font-family:var(--mono); font-size:12px; color:var(--key); text-transform:uppercase; letter-spacing:.08em; }
+  .modal-cat{ font-family:var(--mono); font-size:12px; color:var(--text); opacity:0.8; text-transform:uppercase; letter-spacing:.08em; display:flex; align-items:center; gap:7px; }
   .modal-title{ font-family:var(--display); font-size:32px; font-weight:600; margin:10px 0 18px; }
   .modal-desc{ color:var(--text-dim); font-size:15px; max-width:60ch; margin-bottom:24px; }
   .modal-meta{ display:flex; gap:32px; flex-wrap:wrap; font-family:var(--mono); font-size:12px; }
@@ -315,77 +359,86 @@
   .modal-meta div span:last-child{ color:var(--text); }
 
   /* ---------- CONTACT ---------- */
-  .contact-panel{ padding:56px; display:grid; grid-template-columns:1fr 1fr; gap:48px; }
-  @media (max-width:800px){ .contact-panel{ grid-template-columns:1fr; padding:32px; } }
+  .contact-panel{ padding:52px; display:grid; grid-template-columns:1fr 1fr; gap:48px; }
+  @media (max-width:800px){ .contact-panel{ grid-template-columns:1fr; padding:30px; } }
   .contact-left h3{ font-family:var(--display); font-size:28px; font-weight:600; margin-bottom:14px; }
-  .contact-left p{ color:var(--text-dim); max-width:42ch; margin-bottom:26px; }
-  .social-list{ display:flex; flex-direction:column; gap:2px; }
-  .social-list a{
-    display:flex; justify-content:space-between; padding:14px 4px; border-bottom:1px solid rgba(255,255,255,0.08);
-    font-family:var(--mono); font-size:13px; color:var(--text-dim); transition:color .2s, padding-left .2s;
-  }
-  .social-list a:hover{ color:var(--key); padding-left:8px; }
+  .contact-left p{ color:var(--text-dim); max-width:42ch; margin-bottom:24px; }
+  .social-list{ display:flex; flex-direction:column; gap:2px; margin-bottom:26px; }
+  .social-list a{ display:flex; justify-content:space-between; padding:13px 2px; border-bottom:1px solid rgba(255,255,255,0.07); font-family:var(--mono); font-size:13px; color:var(--text-dim); transition:color .2s; }
+  .social-list a:hover{ color:var(--text); }
   .social-list a span:last-child{ color:var(--text-faint); }
 
-  .field{ margin-bottom:18px; }
+  .field{ margin-bottom:16px; }
   .field label{ display:block; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin-bottom:8px; }
-  .field input, .field textarea{
-    width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--glass-border); color:var(--text); padding:12px 14px;
-    border-radius:var(--radius-sm); font-family:var(--body); font-size:14px; resize:vertical;
-  }
-  .field input:focus, .field textarea:focus{ border-color:var(--key); outline:none; }
-  .form-status{ font-family:var(--mono); font-size:12px; color:var(--key); margin-top:10px; min-height:16px; }
+  .field input, .field textarea{ width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--glass-border); color:var(--text); padding:12px 14px; border-radius:var(--radius-sm); font-family:var(--body); font-size:14px; resize:vertical; }
+  .field input:focus, .field textarea:focus{ border-color:var(--accent); outline:none; }
+  .form-status{ font-family:var(--mono); font-size:12px; color:var(--text); margin-top:10px; min-height:16px; }
 
-  footer{ padding:32px 0; }
-  .footer-row{ display:flex; justify-content:space-between; align-items:center; font-family:var(--mono); font-size:11px; color:var(--text-faint); flex-wrap:wrap; gap:12px; }
+  footer{ position:relative; z-index:2; padding:30px 0 40px; }
+  .footer-row{ display:flex; justify-content:space-between; align-items:center; font-family:var(--mono); font-size:11px; color:var(--text-faint); flex-wrap:wrap; gap:12px; padding:18px 24px; }
 
-  @media (max-width:760px){
+  @media (max-width:920px){
     .nav-links{ display:none; }
     .nav-toggle{ display:flex; }
+  }
+
+  @media (max-width:640px){
+    section{ padding:76px 0; }
+    .wrap{ padding:0 22px; }
+    .about-text{ padding:26px; }
+    .stat-panel{ padding:24px; }
+    .contact-panel{ padding:26px; }
+    .modal-body{ padding:24px; }
+    .showreel-panel, .contact-panel{ border-radius:16px; }
+  }
+
+  @media (max-width:420px){
+    .hero-name{ font-size:clamp(36px, 12vw, 60px); text-shadow:0 0 36px rgba(255,61,138,0.28); }
+    .hero-cta{ gap:10px; }
+    .btn{ padding:12px 20px; font-size:12px; }
+    .stage-heading{ font-size:clamp(26px, 9vw, 40px); }
+    .filters{ gap:6px; }
+    .filter-btn{ padding:8px 12px; font-size:11px; }
+    .photo-frame{ width:150px; height:150px; }
   }
 </style>
 </head>
 <body>
 
-<div id="preloader">
-  <div class="pre-label">Rendering portfolio</div>
-  <div class="pre-bar"><div class="pre-fill" id="preFill"></div></div>
-  <div class="pre-pct" id="prePct">0%</div>
-</div>
-
-<div class="ambient">
-  <div class="orb orb-key"></div>
-  <div class="orb orb-rim"></div>
-  <div class="orb orb-mid"></div>
-</div>
-<div class="grain"></div>
-<div id="spotlight"></div>
+<div class="aurora"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+<div class="grain-grid"></div>
+<div class="cursor-glow" id="cursorGlow"></div>
+<div class="scroll-progress" id="scrollProgress"></div>
 
 <header>
-  <div class="wrap">
-    <nav class="glass">
-      <a href="#top" class="logo">
-        <svg class="logo-mark" viewBox="0 0 28 28" fill="none">
-          <path d="M14 2 L26 8 V20 L14 26 L2 20 V8 Z" stroke="#d9a969" stroke-width="1.4"/>
-          <path d="M14 2 V14 M14 14 L26 8 M14 14 L2 8 M14 14 V26" stroke="#d9a969" stroke-width="1" opacity="0.5"/>
-        </svg>
-        <span id="nav-name">—</span>
-      </a>
-      <div class="nav-links">
-        <a href="#work">Work</a>
-        <a href="#about">About</a>
-        <a href="#contact">Contact</a>
-      </div>
+  <nav class="wrap glass">
+    <a href="#top" class="logo">
+      <svg class="logo-mark" viewBox="0 0 28 28" fill="none">
+        <path d="M14 2 L26 8 V20 L14 26 L2 20 V8 Z" stroke="#ff3d8a" stroke-width="1.4"/>
+        <path d="M14 2 V14 M14 14 L26 8 M14 14 L2 8 M14 14 V26" stroke="#ff3d8a" stroke-width="1" opacity="0.5"/>
+      </svg>
+      <span id="nav-name">—</span>
+    </a>
+    <div class="nav-links">
+      <a href="#about">About</a>
+      <a href="#software">Toolkit</a>
+      <a href="#experience">Experience</a>
+      <a href="#work">Projects</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <div class="nav-actions">
+      <a href="#" id="resumeNav" class="btn-resume" download>⬇ Résumé</a>
       <a href="#contact" class="nav-cta">Start a project</a>
-      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
-        <span></span><span></span><span></span>
-      </button>
-    </nav>
-  </div>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+  </nav>
   <div class="mobile-menu glass" id="mobileMenu">
-    <a href="#work">Work</a>
     <a href="#about">About</a>
+    <a href="#software">Toolkit</a>
+    <a href="#experience">Experience</a>
+    <a href="#work">Renders</a>
     <a href="#contact">Contact</a>
+    <a href="#" id="resumeNavMobile" class="btn-resume" download>⬇ Download résumé</a>
   </div>
 </header>
 
@@ -393,23 +446,11 @@
 
   <!-- ================= HERO ================= -->
   <section class="viewport" id="viewport">
+    <canvas id="hero-canvas"></canvas>
     <div class="vp-corner tl">SCENE / 001</div>
     <div class="vp-corner tr" id="coord-readout">X 0000 &nbsp; Y 0000</div>
     <div class="vp-corner bl">RENDER — <span id="clock">--:--</span></div>
     <div class="vp-corner br">SCROLL TO EXPLORE</div>
-
-    <svg class="gizmo" id="gizmo" viewBox="0 0 100 100">
-      <circle cx="50" cy="50" r="48" stroke="rgba(255,255,255,0.12)" stroke-width="1" fill="none"/>
-      <line x1="50" y1="50" x2="90" y2="50" stroke="#e0625f" stroke-width="1.4"/>
-      <circle cx="90" cy="50" r="7" fill="#e0625f"/>
-      <text x="90" y="53" font-size="8" fill="#0d0e10" text-anchor="middle" font-family="monospace">X</text>
-      <line x1="50" y1="50" x2="50" y2="10" stroke="#6ec26a" stroke-width="1.4"/>
-      <circle cx="50" cy="10" r="7" fill="#6ec26a"/>
-      <text x="50" y="13" font-size="8" fill="#0d0e10" text-anchor="middle" font-family="monospace">Y</text>
-      <line x1="50" y1="50" x2="24" y2="72" stroke="#5fa8e0" stroke-width="1.4"/>
-      <circle cx="24" cy="72" r="7" fill="#5fa8e0"/>
-      <text x="24" y="75" font-size="8" fill="#0d0e10" text-anchor="middle" font-family="monospace">Z</text>
-    </svg>
 
     <div class="hero-inner">
       <div class="eyebrow" id="hero-eyebrow">3D ARTIST</div>
@@ -418,7 +459,7 @@
       <p class="hero-intro" id="hero-intro">Intro text.</p>
       <div class="hero-cta">
         <a href="#work" class="btn btn-primary">View the work</a>
-        <a href="#contact" class="btn btn-ghost">Get in touch</a>
+        <a href="#" id="resumeHero" class="btn glass btn-glass" download>⬇ Download résumé</a>
       </div>
     </div>
 
@@ -428,52 +469,77 @@
   <!-- ================= ABOUT ================= -->
   <section id="about">
     <div class="wrap">
-      <div class="eyebrow">Profile</div>
+      <div class="eyebrow reveal">Profile</div>
       <div class="about-grid">
+        <div class="about-photo reveal">
+          <div class="photo-frame">
+            <div class="ring"></div>
+            <div class="ring-mask"></div>
+            <img id="profilePhoto" src="" alt="">
+            <div class="orbit"><span class="orbit-dot"></span></div>
+          </div>
+          <div class="photo-status glass"><span class="status-dot"></span><span id="statusText">Available for freelance</span></div>
+        </div>
         <div class="about-text glass reveal" id="about-text"></div>
         <div class="stat-panel glass reveal" id="stat-panel"></div>
       </div>
     </div>
   </section>
 
-  <!-- ================= WORK ================= -->
+  <!-- ================= SOFTWARE ================= -->
+  <section id="software">
+    <div class="wrap">
+      <div class="eyebrow reveal">Toolset</div>
+      <div class="section-head reveal">
+        <h2 class="section-title">Software</h2>
+      </div>
+      <div class="software-grid" id="softwareGrid"></div>
+    </div>
+  </section>
+
+  <!-- ================= EXPERIENCE ================= -->
+  <section id="experience">
+    <div class="wrap">
+      <div class="eyebrow reveal">Career</div>
+      <div class="section-head reveal">
+        <h2 class="section-title">Experience</h2>
+      </div>
+      <div class="experience-list" id="experienceList"></div>
+    </div>
+  </section>
+
+  <!-- ================= RENDERS (carousel) ================= -->
   <section id="work">
     <div class="wrap">
-      <div class="section-head reveal">
-        <div>
-          <div class="eyebrow">Selected work</div>
-          <h2 class="section-title">Projects</h2>
-        </div>
-        <div class="filters" id="filters"></div>
+      <h2 class="stage-heading reveal">Renders</h2>
+      <div class="stage-sub reveal mono" id="stage-sub">Selected 3D work — drag, click a side render, or use the arrows</div>
+      <div class="filters reveal" id="filters"></div>
+
+      <div class="renders-stage reveal" id="rendersStage">
+        <button class="stage-nav prev glass" id="stagePrev" aria-label="Previous render">‹</button>
+        <div class="stage-track" id="stageTrack"></div>
+        <button class="stage-nav next glass" id="stageNext" aria-label="Next render">›</button>
       </div>
-      <div class="grid" id="grid"></div>
+      <div class="stage-dots" id="stageDots"></div>
     </div>
   </section>
 
   <!-- ================= CONTACT ================= -->
   <section id="contact">
     <div class="wrap">
-      <div class="eyebrow">Contact</div>
+      <div class="eyebrow reveal">Contact</div>
       <div class="contact-panel glass reveal">
         <div class="contact-left">
           <h3>Let's build something.</h3>
           <p id="contact-blurb">Open to freelance work and full-time roles.</p>
           <div class="social-list" id="social-list"></div>
+          <a href="#" id="resumeContact" class="btn btn-primary" download>⬇ Download résumé</a>
         </div>
         <div>
           <form id="contactForm">
-            <div class="field">
-              <label for="f-name">Name</label>
-              <input id="f-name" type="text" required>
-            </div>
-            <div class="field">
-              <label for="f-email">Email</label>
-              <input id="f-email" type="email" required>
-            </div>
-            <div class="field">
-              <label for="f-msg">Message</label>
-              <textarea id="f-msg" rows="4" required></textarea>
-            </div>
+            <div class="field"><label for="f-name">Name</label><input id="f-name" type="text" required></div>
+            <div class="field"><label for="f-email">Email</label><input id="f-email" type="email" required></div>
+            <div class="field"><label for="f-msg">Message</label><textarea id="f-msg" rows="4" required></textarea></div>
             <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Send message</button>
             <div class="form-status" id="formStatus"></div>
           </form>
@@ -485,7 +551,7 @@
 </main>
 
 <footer>
-  <div class="wrap footer-row">
+  <div class="wrap footer-row glass">
     <span id="footer-name">—</span>
     <span>© <span id="year"></span> — Built with a viewport, not a template.</span>
   </div>
@@ -493,12 +559,11 @@
 
 <!-- ================= MODAL ================= -->
 <div class="modal-backdrop" id="modalBackdrop">
-  <div class="modal glass">
-    <div class="modal-img-wrap">
-      <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
-      <button class="modal-nav prev" id="modalPrev" aria-label="Previous image">‹</button>
-      <img id="modalImg" src="" alt="">
-      <button class="modal-nav next" id="modalNext" aria-label="Next image">›</button>
+  <div class="modal glass glass-strong">
+    <div class="modal-media-wrap" id="modalMediaWrap">
+      <button class="modal-close glass" id="modalClose" aria-label="Close">✕</button>
+      <button class="modal-nav prev glass" id="modalPrev" aria-label="Previous">‹</button>
+      <button class="modal-nav next glass" id="modalNext" aria-label="Next">›</button>
     </div>
     <div class="modal-body">
       <div class="modal-cat" id="modalCat"></div>
@@ -512,129 +577,145 @@
 <script>
 /* =========================================================================
    SITE CONFIG — edit everything below to make this your own portfolio.
-   For "image" and "gallery" fields: put your files in an /images folder
-   next to this HTML file and reference them like "images/my-file.jpg".
-   See the comment block at the top of this file for full steps.
    ========================================================================= */
 const CONFIG = {
   name: "Mohammed Shoaib Khan",
-  role: "Realtime VFX, Environment,",
-  eyebrow: "Senior 3D Artist",
-  intro: "I model, sculpt and render characters and hard-surface assets for games and film. Based in Delhi, working with studios worldwide.",
+  role: "Senior 3D Artist",
+  eyebrow: "Realtime VFX, Immersive, Anamorphic",
+  intro: "I build high-fidelity environments, real-time VFX, and immersive experiences. Based in Noida, collaborating with forward-thinking studios worldwide.",
+
+  // Résumé file — put the PDF next to this index.html and point to it here.
+  resumeUrl: "resume.pdf",
+
+  // Profile photo shown in the About section, plus the little status pill under it.
+  photoUrl: "https://picsum.photos/seed/artistportrait/400/400",
+  availability: "Available for freelance",
 
   about: [
     "3D Artist with 5+ years modeling, texturing, and lighting environments and props for real-time and interactive experiences.",
-    "Proficient in Unity, Unreal Engine, and Embergen or real-time VFX, with strong Maya, Blender, Substance Painter, Photoshop etc. ",
-    "Experienced leading production pipelines and mentoring artists while collaboratin closely with developers"
+    "Proficient in Unity, Unreal Engine, and Embergen for real-time VFX, with strong Blender/Maya/ZBrush and PBR texturing skills. ",
+    "Experienced leading production pipelines and mentoring artists while collaborating closely with developers."
   ],
-  software: ["Unreal Engine","Unity","Maya","Blender","Zbrush","Adobe Substance Painter","Adobe Substance Designer","Adobe Photoshop","Embergen","Plasticity"],
+
+  /* Software shown in the Toolkit section as logo badges.
+     - abbr / color: used to draw a colored monogram badge (works out of the
+       box, no external files needed).
+     - logoUrl (optional): point this at a real logo file (e.g.
+       "images/logos/blender.svg") and it will be used instead of the
+       monogram badge — this is how you swap in the actual brand logos. */
+  software: [
+    { name: "ZBrush", abbr: "ZB", color: "#1a1a1a", logoUrl: "" },
+    { name: "Blender", abbr: "BL", color: "#ea7600", logoUrl: "" },
+    { name: "Maya", abbr: "MY", color: "#0f8fa8", logoUrl: "" },
+    { name: "AdobeSubstance Painter", abbr: "SP", color: "#cb1e2a", logoUrl: "" },
+    { name: "Adobe Substance Designer", abbr: "SD", color: "#3a3a3a", logoUrl: "" },
+    { name: "AdobePhotoshop", abbr: "Ps", color: "#001e36", logoUrl: "" },
+    { name: "Unreal Engine", abbr: "UE", color: "#0e0e0e", logoUrl: "" },
+    { name: "Unity", abbr: "Ut", color: "#0e0e0e", logoUrl: "" },
+    { name: "Plasticity", abbr: "Py", color: "#0e0e0e", logoUrl: "" },
+    { name: "Embergen", abbr: "Em", color:"#0e0e0e", logoUrl: "" }
+  ],
 
   stats: [
     { label: "Years experience", value: "5+" },
     { label: "Projects shipped", value: "40+" },
-    { label: "Clients worked with", value: "50+" },
-    { label: "Based in", value: "Noida(UP), IN" }
+    { label: "Clients worked with", value: "30+" },
+    { label: "Based in", value: "Delhi, IN" }
   ],
 
-  resumeUrl: "Resume_Md.ShoaibKhan_Senior3dArtist_75.pdf", // link to a hosted PDF resume
+  /* Companies worked with — shown as a timeline in the Experience section.
+     Keep "duties" to one or two lines. */
+  experience: [
+    {
+      role: "Senior 3D Artist",
+      company: "Metaverse911 - Metaverse Experience Centre, (Noida,IN)",
+      period: "Mar 2025 — Present",
+      duties: "Own the end-to-end asset pipeline from concept through final integration, working closely with developers and other departments to bring visuals into interactive systems, Lead and mentor a team of intern 3D artists, providing creative direction, technical guidance, and hands-on feedback throughout production.", 
+      
+    },
+    {
+      role: "Modeling and Texturing Artist",
+      company: "XS Worldwide India Ltd. (Noida,IN)",
+      period: "May 2022 — Feb 2025",
+      duties: "Modeled and textured environment props and hero assets for a live-service shooter; mentored two junior artists."
+    },
+    {
+      role: "Executive Modeling and Texturing Artist",
+      company: "Expoodle India Pvt Ltd. (Noida,IN)",
+      period: "July 2021 — Apr 2022",
+      duties: "Supported the environment art team on a mobile RPG — modular kits, prop dressing, and bake/texture cleanup."
+    },
+  ],
+
   email: "k.shoaib9227@gmail.com",
-
+  // Link to your demo reel (YouTube/Vimeo/ArtStation video, etc.) — shown in Contact alongside LinkedIn and ArtStation.
+  showreelLink: "https://vimeo.com/",
   socials: [
-    { label: "ArtStation", handle: "Shoaib Khan", url: "https://khanshoaib.artstation.com/" },
-    
-    { label: "Instagram", handle: "@yourname", url: "https://www.instagram.com/" },
-    { label: "LinkedIn", handle: "Shoaib Khan", url: "https://www.linkedin.com/in/shoaibkhan2/" }
+    { label: "Projects", handle: "Project Work", url: "https://drive.google.com/drive/folders/1RyCocd6rrxVnzQp9JyB70gQULHVVzTMM?usp=sharing" },
+    { label: "ArtStation", handle: "Shoaib Khan", url: "https://www.artstation.com/khanshoaib" },
+    { label: "LinkedIn", handle: "Shoaib Khan", url: "https://www.linkedin.com/in/shoaibkhan2/" },
   ],
+  contactBlurb: "Open to Freelance, Full-time, Hybrid and Remote Roles. Usually replies within a day.",
 
-  contactBlurb: "Open to freelance work and full-time roles. Usually replies within a day.",
-
-  /* Each project: category drives the filter buttons automatically.
-     "image"   = cover shown in the grid    → e.g. "images/ashen-cover.jpg"
-     "gallery" = images shown in the modal   → e.g. ["images/ashen-1.jpg", "images/ashen-2.jpg"]
-     Until you add real files, these point at placeholder paths and will
-     automatically fall back to a soft glass card with the title on it —
-     nothing will look "broken". */
+  /* Each project:
+     - image: cover shown in the Renders carousel.
+     - video: optional URL (.mp4/.webm/.mov) — shows a play badge on the
+       card and becomes the first item in that project's modal gallery.
+     - gallery: additional images (or videos — just use a .mp4/.webm/.mov URL). */
   projects: [
     {
-      title: "Mystical Tomb Ritual",
-      category: "Realtime VFX",
-      year: "2026",
-      software: "Unity, Adobe Photoshop",
-      polycount: "",
-      image: "images/Tomb-Ritual-Cover.jpg.jpeg",
-      gallery: ["images/FirstFrame.jpeg", "images/FirstFrame.jpeg", "images/FirstFrame.jpeg"],
+      title: "Ashen Warden", category: "Characters", year: "2025",
+      software: "ZBrush, Substance Painter", polycount: "82K tris",
+      image: "https://picsum.photos/seed/ashen1/1200/800",
+      video: "",
+      gallery: ["https://picsum.photos/seed/ashen1/1600/900","https://picsum.photos/seed/ashen2/1600/900","https://picsum.photos/seed/ashen3/1600/900"],
       description: "A stylized guardian character built for a dark-fantasy pitch, sculpted from a 2D concept and taken through to a game-ready mesh with hand-painted material breakup."
     },
     {
-      title: "Drift Pod MK-II",
-      category: "Hard Surface",
-      year: "2025",
-      software: "Blender, Marmoset",
-      polycount: "64K tris",
-      image: "images/drift-pod-cover.jpg",
-      gallery: ["images/drift-pod-1.jpg", "images/drift-pod-2.jpg"],
+      title: "Drift Pod MK-II", category: "Hard Surface", year: "2025",
+      software: "Blender, Marmoset", polycount: "64K tris",
+      image: "https://picsum.photos/seed/pod1/1200/800",
+      video: "",
+      gallery: ["https://picsum.photos/seed/pod1/1600/900","https://picsum.photos/seed/pod2/1600/900"],
       description: "A single-seat exploration pod design exploring panel-line hard-surface language and a worn, field-serviced material story."
     },
     {
-      title: "Lower Ninth Alley",
-      category: "Environments",
-      year: "2024",
-      software: "Blender, Substance",
-      polycount: "1.2M tris (scene)",
-      image: "images/alley-cover.jpg",
-      gallery: ["images/alley-1.jpg", "images/alley-2.jpg", "images/alley-3.jpg"],
+      title: "Lower Ninth Alley", category: "Environments", year: "2024",
+      software: "Blender, Substance", polycount: "1.2M tris (scene)",
+      image: "https://picsum.photos/seed/alley1/1200/800",
+      video: "",
+      gallery: ["https://picsum.photos/seed/alley1/1600/900","https://picsum.photos/seed/alley2/1600/900","https://picsum.photos/seed/alley3/1600/900"],
       description: "A modular back-alley environment built for a lighting study — focused on trim-sheet efficiency and a believable grime pass."
     },
     {
-      title: "Kite Spirit",
-      category: "Sculpts",
-      year: "2024",
-      software: "ZBrush",
-      polycount: "Sculpt (unretopo'd)",
-      image: "images/kite-spirit-cover.jpg",
-      gallery: ["images/kite-spirit-1.jpg", "images/kite-spirit-2.jpg"],
+      title: "Kite Spirit", category: "Sculpts", year: "2024",
+      software: "ZBrush", polycount: "Sculpt (unretopo'd)",
+      image: "https://picsum.photos/seed/kite1/1200/800",
+      video: "",
+      gallery: ["https://picsum.photos/seed/kite1/1600/900","https://picsum.photos/seed/kite2/1600/900"],
       description: "A quick creature sculpt exploring soft silhouettes and long, wind-swept forms — a weekend study, not a production asset."
     },
     {
-      title: "Marrow Knight",
-      category: "Characters",
-      year: "2024",
-      software: "ZBrush, Maya, Painter",
-      polycount: "95K tris",
-      image: "images/marrow-knight-cover.jpg",
-      gallery: ["images/marrow-knight-1.jpg", "images/marrow-knight-2.jpg", "images/marrow-knight-3.jpg"],
+      title: "Marrow Knight", category: "Characters", year: "2024",
+      software: "ZBrush, Maya, Painter", polycount: "95K tris",
+      image: "https://picsum.photos/seed/marrow1/1200/800",
+      video: "",
+      gallery: ["https://picsum.photos/seed/marrow1/1600/900","https://picsum.photos/seed/marrow2/1600/900","https://picsum.photos/seed/marrow3/1600/900"],
       description: "Bone-armor knight built from an internal concept jam — the brief was 'ceremonial, not military.'"
     },
     {
-      title: "Cistern Rig",
-      category: "Hard Surface",
-      year: "2023",
-      software: "Blender, Marmoset",
-      polycount: "48K tris",
-      image: "images/cistern-rig-cover.jpg",
-      gallery: ["images/cistern-rig-1.jpg", "images/cistern-rig-2.jpg"],
+      title: "Cistern Rig", category: "Hard Surface", year: "2023",
+      software: "Blender, Marmoset", polycount: "48K tris",
+      image: "https://picsum.photos/seed/cistern1/1200/800",
+      video: "",
+      gallery: ["https://picsum.photos/seed/cistern1/1600/900","https://picsum.photos/seed/cistern2/1600/900"],
       description: "Industrial water-reclamation rig prop, designed to read clearly as background set-dressing at a distance."
     }
   ]
 };
 /* ========================================================================= */
 
-
-/* ---------- preloader ---------- */
-(function(){
-  const fill = document.getElementById('preFill');
-  const pct = document.getElementById('prePct');
-  const pre = document.getElementById('preloader');
-  let p = 0;
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduced){ pre.classList.add('hide'); return; }
-  const timer = setInterval(() => {
-    p += Math.random() * 18;
-    if(p >= 100){ p = 100; clearInterval(timer); setTimeout(()=>pre.classList.add('hide'), 250); }
-    fill.style.width = p + '%';
-    pct.textContent = Math.round(p) + '%';
-  }, 140);
-})();
+const isVideo = src => /\.(mp4|webm|mov)(\?.*)?$/i.test(src || "");
 
 /* ---------- render text from config ---------- */
 document.title = `${CONFIG.name} — ${CONFIG.role}`;
@@ -646,152 +727,281 @@ document.getElementById('hero-intro').textContent = CONFIG.intro;
 document.getElementById('contact-blurb').textContent = CONFIG.contactBlurb;
 document.getElementById('year').textContent = new Date().getFullYear();
 
+['resumeNav','resumeNavMobile','resumeHero','resumeContact'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el){ el.href = CONFIG.resumeUrl; }
+});
+
+(function(){
+  const photo = document.getElementById('profilePhoto');
+  photo.src = CONFIG.photoUrl;
+  photo.alt = CONFIG.name;
+  document.getElementById('statusText').textContent = CONFIG.availability;
+})();
+
 (function(){
   const parts = CONFIG.name.trim().split(' ');
   const first = parts.shift();
   const rest = parts.join(' ');
-  document.getElementById('hero-name').innerHTML =
-    `${first.toUpperCase()}<br><span class="accent-word">${(rest||'').toUpperCase()}</span>`;
+  document.getElementById('hero-name').innerHTML = `${first.toUpperCase()}<br><span class="accent-word">${(rest||'').toUpperCase()}</span>`;
 })();
 
 (function(){
   const el = document.getElementById('about-text');
-  const tags = CONFIG.software.concat(CONFIG.software); // duplicate for seamless marquee loop
-  el.innerHTML = CONFIG.about.map(p => `<p>${p}</p>`).join('') +
-    `<div class="marquee"><div class="marquee-track">${tags.map(s=>`<span class="stack-tag">${s}</span>`).join('')}</div></div>` +
-    `<div class="hero-cta" style="margin-top:30px;"><a href="${CONFIG.resumeUrl}" class="btn btn-ghost">Download résumé</a></div>`;
+  el.innerHTML = CONFIG.about.map(p => `<p>${p}</p>`).join('');
 })();
 
 (function(){
   const el = document.getElementById('stat-panel');
-  el.innerHTML = CONFIG.stats.map((s,i) => `
-    <div class="stat-row"><span>${s.label}</span><span class="stat-value" data-target="${s.value}">0</span></div>
+  el.innerHTML = CONFIG.stats.map(s => `
+    <div class="stat-row"><span>${s.label}</span><span class="stat-value" data-full="${s.value}">${/^\d/.test(s.value) ? '0' : s.value}</span></div>
+  `).join('');
+})();
+
+/* Software logo grid — uses a real logo image if s.logoUrl is set,
+   otherwise falls back to a colored monogram badge (s.abbr / s.color). */
+(function(){
+  const el = document.getElementById('softwareGrid');
+  el.innerHTML = CONFIG.software.map(s => `
+    <div class="software-card glass">
+      <div class="software-logo" style="background:${s.logoUrl ? 'transparent' : `linear-gradient(135deg, ${s.color}, #000)`};">
+        ${s.logoUrl ? `<img src="${s.logoUrl}" alt="${s.name} logo">` : s.abbr}
+      </div>
+      <div class="software-name">${s.name}</div>
+    </div>
+  `).join('');
+})();
+
+/* Experience timeline */
+(function(){
+  const el = document.getElementById('experienceList');
+  el.innerHTML = `<div class="timeline-track"></div>` + CONFIG.experience.map(e => `
+    <div class="timeline-item glass reveal">
+      <span class="timeline-dot"></span>
+      <div class="timeline-head">
+        <div>
+          <div class="timeline-role">${e.role}</div>
+          <div class="timeline-company">${e.company}</div>
+        </div>
+        <div class="timeline-period">${e.period}</div>
+      </div>
+      <p class="timeline-desc">${e.duties}</p>
+    </div>
   `).join('');
 })();
 
 (function(){
   const el = document.getElementById('social-list');
-  el.innerHTML = CONFIG.socials.map(s => `
-    <a href="${s.url}" target="_blank" rel="noopener"><span>${s.label}</span><span>${s.handle}</span></a>
-  `).join('') + `<a href="mailto:${CONFIG.email}"><span>Email</span><span>${CONFIG.email}</span></a>`;
+  el.innerHTML = CONFIG.socials.map(s => `<a href="${s.url}" target="_blank" rel="noopener"><span>${s.label}</span><span>${s.handle}</span></a>`).join('') +
+    `<a href="mailto:${CONFIG.email}"><span>Email</span><span>${CONFIG.email}</span></a>`;
 })();
 
-/* ---------- animated stat counters ---------- */
-function animateCounters(){
-  document.querySelectorAll('.stat-value').forEach(el => {
-    const raw = el.dataset.target;
-    const num = parseInt(raw.replace(/\D/g,'')) || 0;
-    const suffix = raw.replace(/[0-9]/g,'');
-    let cur = 0;
-    const step = Math.max(1, Math.ceil(num / 40));
-    const t = setInterval(() => {
-      cur += step;
-      if(cur >= num){ cur = num; clearInterval(t); }
-      el.textContent = cur + suffix;
-    }, 30);
+/* count-up stats once visible */
+const statObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(!entry.isIntersecting) return;
+    entry.target.querySelectorAll('.stat-value').forEach(span => {
+      const full = span.dataset.full;
+      const match = full.match(/^(\d+)(.*)$/);
+      if(!match){ return; }
+      const target = parseInt(match[1],10), suffix = match[2];
+      const duration = 900, start = performance.now();
+      function step(now){
+        const p = Math.min((now-start)/duration, 1);
+        span.textContent = Math.round(p*target) + suffix;
+        if(p<1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+    statObserver.unobserve(entry.target);
   });
-}
+}, { threshold: 0.4 });
+statObserver.observe(document.getElementById('stat-panel'));
 
-/* ---------- image fallback placeholder ---------- */
-function imgWithFallback(src, title){
-  return `<div class="card-img-wrap">
-    <img src="${src}" alt="${title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=&quot;card-placeholder&quot;>${title}</div>'">
-  </div>`;
-}
-
-/* ---------- filters + grid ---------- */
+/* ---------- category filters ---------- */
 const categories = ['All', ...new Set(CONFIG.projects.map(p => p.category))];
 const filtersEl = document.getElementById('filters');
-const gridEl = document.getElementById('grid');
 let activeCategory = 'All';
-
-filtersEl.innerHTML = categories.map((c,i) =>
-  `<button class="filter-btn ${i===0?'active':''}" data-cat="${c}">${c}</button>`
-).join('');
-
-function renderGrid(){
-  const items = CONFIG.projects.filter(p => activeCategory === 'All' || p.category === activeCategory);
-  gridEl.innerHTML = items.map((p, i) => `
-    <div class="card" data-index="${CONFIG.projects.indexOf(p)}">
-      <span class="card-index">${String(i+1).padStart(2,'0')}</span>
-      ${imgWithFallback(p.image, p.title)}
-      <div class="card-overlay">
-        <div class="card-cat">${p.category} — ${p.year}</div>
-        <div class="card-title">${p.title}</div>
-      </div>
-    </div>
-  `).join('');
-  document.querySelectorAll('.card').forEach(card => {
-    card.addEventListener('click', () => openModal(parseInt(card.dataset.index)));
-    // tilt-on-hover, like a piece turning under studio light
-    card.addEventListener('mousemove', e => {
-      const r = card.getBoundingClientRect();
-      const px = (e.clientX - r.left) / r.width - 0.5;
-      const py = (e.clientY - r.top) / r.height - 0.5;
-      card.style.transform = `rotateX(${(-py*10).toFixed(2)}deg) rotateY(${(px*10).toFixed(2)}deg) translateZ(0)`;
-    });
-    card.addEventListener('mouseleave', () => { card.style.transform = 'rotateX(0) rotateY(0)'; });
-  });
-}
-renderGrid();
-
+filtersEl.innerHTML = categories.map((c,i) => `<button class="filter-btn ${i===0?'active':''}" data-cat="${c}">${c}</button>`).join('');
 filtersEl.addEventListener('click', e => {
   const btn = e.target.closest('.filter-btn');
   if(!btn) return;
   activeCategory = btn.dataset.cat;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b === btn));
-  renderGrid();
+  stageIndex = 0;
+  renderStage();
+});
+
+function buildMediaList(project){
+  const list = [];
+  if(project.video){ list.push({ type:'video', src: project.video }); }
+  (project.gallery||[]).forEach(src => list.push({ type: isVideo(src) ? 'video' : 'image', src }));
+  if(list.length === 0){ list.push({ type:'image', src: project.image }); }
+  return list;
+}
+
+/* ---------- Renders coverflow carousel ---------- */
+/* Cards are created once per filter selection and then only REPOSITIONED
+   (never rebuilt) when navigating, so the CSS transitions on .stage-card
+   can actually animate — that's what produces the swipe-with-depth feel. */
+const rendersStage = document.getElementById('rendersStage');
+const stageTrack = document.getElementById('stageTrack');
+const stageDots = document.getElementById('stageDots');
+let stageIndex = 0;
+let stageItems = [];
+
+function getFiltered(){
+  return CONFIG.projects
+    .map((p, originalIndex) => Object.assign({}, p, { originalIndex }))
+    .filter(p => activeCategory === 'All' || p.category === activeCategory);
+}
+
+// shortest signed distance from `i` to `idx` around a circular list of length `len`
+function wrappedOffset(i, idx, len){
+  let offset = i - idx;
+  if(offset > len / 2) offset -= len;
+  if(offset < -len / 2) offset += len;
+  return offset;
+}
+
+function buildStageCards(items){
+  stageTrack.innerHTML = '';
+  items.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'stage-card';
+    card.innerHTML = `
+      ${p.video ? '<span class="card-video-badge">▶</span>' : ''}
+      <img src="${p.image}" alt="${p.title}" loading="lazy">
+      <div class="stage-card-overlay">
+        <div class="card-cat"><span class="cat-dot"></span>${p.category} — ${p.year}</div>
+        <div class="card-title">${p.title}</div>
+      </div>
+    `;
+    card.addEventListener('click', () => {
+      const offset = wrappedOffset(i, stageIndex, items.length);
+      if(offset === 0){ openModal(p.originalIndex); }
+      else { goToIndex(i); }
+    });
+    stageTrack.appendChild(card);
+  });
+  stageDots.innerHTML = items.map((_,i) => `<button class="stage-dot" data-i="${i}" aria-label="Go to render ${i+1}"></button>`).join('');
+  stageDots.querySelectorAll('.stage-dot').forEach(dot => {
+    dot.addEventListener('click', () => goToIndex(parseInt(dot.dataset.i, 10)));
+  });
+}
+
+function updateStagePositions(){
+  const items = stageItems;
+  if(items.length === 0) return;
+  const stageWidth = rendersStage.clientWidth || 900;
+  const offsetUnit = Math.min(stageWidth * 0.30, 340);
+  const cards = stageTrack.children;
+
+  for(let i=0; i<items.length; i++){
+    const card = cards[i];
+    if(!card) continue;
+    const offset = wrappedOffset(i, stageIndex, items.length);
+    const dist = Math.abs(offset);
+    const scale = dist === 0 ? 1 : dist === 1 ? 0.64 : dist === 2 ? 0.46 : 0.34;
+    const opacity = dist === 0 ? 1 : dist === 1 ? 0.55 : dist === 2 ? 0.24 : 0;
+    const rotateY = offset === 0 ? 0 : (offset > 0 ? -16 : 16);
+    const translateZ = -Math.min(dist, 3) * 130;
+
+    card.style.transform = `translate(-50%,-50%) translateX(${offset*offsetUnit}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`;
+    card.style.opacity = opacity;
+    card.style.zIndex = 10 - dist;
+    card.style.pointerEvents = dist > 2 ? 'none' : 'auto';
+    card.classList.toggle('active', offset === 0);
+  }
+  stageDots.querySelectorAll('.stage-dot').forEach((dot, i) => dot.classList.toggle('active', i === stageIndex));
+}
+
+function goToIndex(newIndex){
+  const len = stageItems.length;
+  if(len === 0) return;
+  stageIndex = ((newIndex % len) + len) % len;
+  updateStagePositions();
+}
+
+function renderStage(){
+  stageItems = getFiltered();
+  if(stageItems.length === 0){ stageTrack.innerHTML = ''; stageDots.innerHTML = ''; return; }
+  if(stageIndex >= stageItems.length) stageIndex = 0;
+  if(stageIndex < 0) stageIndex = stageItems.length - 1;
+  buildStageCards(stageItems);
+  updateStagePositions();
+}
+renderStage();
+
+document.getElementById('stagePrev').addEventListener('click', () => goToIndex(stageIndex - 1));
+document.getElementById('stageNext').addEventListener('click', () => goToIndex(stageIndex + 1));
+window.addEventListener('resize', () => updateStagePositions());
+
+/* swipe / drag support */
+let dragStartX = null;
+rendersStage.addEventListener('pointerdown', e => { dragStartX = e.clientX; });
+rendersStage.addEventListener('pointerup', e => {
+  if(dragStartX === null) return;
+  const dx = e.clientX - dragStartX;
+  if(dx > 50){ goToIndex(stageIndex - 1); }
+  else if(dx < -50){ goToIndex(stageIndex + 1); }
+  dragStartX = null;
 });
 
 /* ---------- modal ---------- */
 const modalBackdrop = document.getElementById('modalBackdrop');
-const modalImg = document.getElementById('modalImg');
+const modalMediaWrap = document.getElementById('modalMediaWrap');
 const modalCat = document.getElementById('modalCat');
 const modalTitle = document.getElementById('modalTitle');
 const modalDesc = document.getElementById('modalDesc');
 const modalMeta = document.getElementById('modalMeta');
-let currentProject = null;
-let currentImgIndex = 0;
+let currentProject = null, currentMedia = [], currentMediaIndex = 0;
 
 function openModal(index){
   currentProject = CONFIG.projects[index];
-  currentImgIndex = 0;
-  modalCat.textContent = `${currentProject.category} — ${currentProject.year}`;
+  currentMedia = buildMediaList(currentProject);
+  currentMediaIndex = 0;
+  modalCat.innerHTML = `<span class="cat-dot"></span>${currentProject.category} — ${currentProject.year}`;
   modalTitle.textContent = currentProject.title;
   modalDesc.textContent = currentProject.description;
   modalMeta.innerHTML = `
     <div><span>Software</span><span>${currentProject.software}</span></div>
     <div><span>Detail</span><span>${currentProject.polycount}</span></div>
   `;
-  showModalImage();
+  showModalMedia();
   modalBackdrop.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
-function showModalImage(){
-  const gallery = currentProject.gallery && currentProject.gallery.length ? currentProject.gallery : [currentProject.image];
-  currentImgIndex = (currentImgIndex + gallery.length) % gallery.length;
-  modalImg.onerror = function(){
-    this.onerror = null;
-    this.src = 'data:image/svg+xml,' + encodeURIComponent(
-      `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="100%" height="100%" fill="#14151a"/><text x="50%" y="50%" fill="#5c606c" font-family="monospace" font-size="18" text-anchor="middle">${currentProject.title}</text></svg>`
-    );
-  };
-  modalImg.src = gallery[currentImgIndex];
-  modalImg.alt = currentProject.title;
+function showModalMedia(){
+  const existing = modalMediaWrap.querySelector('img, video');
+  if(existing) existing.remove();
+  currentMediaIndex = (currentMediaIndex + currentMedia.length) % currentMedia.length;
+  const media = currentMedia[currentMediaIndex];
+  let el;
+  if(media.type === 'video'){
+    el = document.createElement('video');
+    el.src = media.src; el.controls = true; el.autoplay = false; el.playsInline = true;
+  } else {
+    el = document.createElement('img');
+    el.src = media.src; el.alt = currentProject.title;
+  }
+  modalMediaWrap.insertBefore(el, modalMediaWrap.firstChild);
 }
 function closeModal(){
+  const v = modalMediaWrap.querySelector('video');
+  if(v){ v.pause(); }
   modalBackdrop.classList.remove('open');
   document.body.style.overflow = '';
 }
 document.getElementById('modalClose').addEventListener('click', closeModal);
 modalBackdrop.addEventListener('click', e => { if(e.target === modalBackdrop) closeModal(); });
-document.getElementById('modalPrev').addEventListener('click', () => { currentImgIndex--; showModalImage(); });
-document.getElementById('modalNext').addEventListener('click', () => { currentImgIndex++; showModalImage(); });
+document.getElementById('modalPrev').addEventListener('click', () => { currentMediaIndex--; showModalMedia(); });
+document.getElementById('modalNext').addEventListener('click', () => { currentMediaIndex++; showModalMedia(); });
 document.addEventListener('keydown', e => {
   if(!modalBackdrop.classList.contains('open')) return;
   if(e.key === 'Escape') closeModal();
-  if(e.key === 'ArrowLeft'){ currentImgIndex--; showModalImage(); }
-  if(e.key === 'ArrowRight'){ currentImgIndex++; showModalImage(); }
+  if(e.key === 'ArrowLeft'){ currentMediaIndex--; showModalMedia(); }
+  if(e.key === 'ArrowRight'){ currentMediaIndex++; showModalMedia(); }
 });
 
 /* ---------- mobile menu ---------- */
@@ -812,61 +1022,96 @@ document.getElementById('contactForm').addEventListener('submit', function(e){
   document.getElementById('formStatus').textContent = 'Opening your email app…';
 });
 
-/* ---------- viewport gizmo + coordinate readout + cursor spotlight ---------- */
-const gizmo = document.getElementById('gizmo');
+/* ---------- viewport coordinate readout ---------- */
 const coordReadout = document.getElementById('coord-readout');
 const viewport = document.getElementById('viewport');
-const root = document.documentElement;
-
-document.addEventListener('mousemove', e => {
-  root.style.setProperty('--sx', e.clientX + 'px');
-  root.style.setProperty('--sy', e.clientY + 'px');
-});
-
 viewport.addEventListener('mousemove', e => {
   const rect = viewport.getBoundingClientRect();
-  const x = Math.round(e.clientX - rect.left);
-  const y = Math.round(e.clientY - rect.top);
+  const x = Math.round(e.clientX - rect.left), y = Math.round(e.clientY - rect.top);
   coordReadout.textContent = `X ${String(x).padStart(4,'0')}   Y ${String(y).padStart(4,'0')}`;
-  const rx = ((y / rect.height) - 0.5) * 24;
-  const ry = ((x / rect.width) - 0.5) * -24;
-  gizmo.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
 });
 
-/* subtle hero parallax on scroll */
-const heroInner = document.querySelector('.hero-inner');
-window.addEventListener('scroll', () => {
-  const y = window.scrollY;
-  if(y < window.innerHeight){
-    heroInner.style.transform = `translateY(${y * 0.18}px)`;
-    heroInner.style.opacity = String(1 - y / (window.innerHeight * 0.9));
-  }
-}, { passive:true });
-
-/* ---------- render clock (purely atmospheric) ---------- */
+/* ---------- render clock (atmospheric) ---------- */
 function tickClock(){
   const d = new Date();
-  document.getElementById('clock').textContent =
-    `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('clock').textContent = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
-tickClock();
-setInterval(tickClock, 1000 * 30);
+tickClock(); setInterval(tickClock, 1000*30);
 
-/* ---------- scroll reveal + counter trigger ---------- */
-const revealEls = document.querySelectorAll('.reveal');
-let countersFired = false;
+/* ---------- cursor glow + scroll progress ---------- */
+const cursorGlow = document.getElementById('cursorGlow');
+window.addEventListener('mousemove', e => { cursorGlow.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`; });
+const scrollProgress = document.getElementById('scrollProgress');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  scrollProgress.style.width = pct + '%';
+});
+
+/* ---------- scroll reveal ---------- */
 const io = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if(entry.isIntersecting){
-      entry.target.classList.add('in');
-      if(entry.target.id === 'stat-panel' && !countersFired){
-        countersFired = true;
-        animateCounters();
-      }
-    }
-  });
+  entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('in'); });
 }, { threshold: 0.15 });
-revealEls.forEach(el => io.observe(el));
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+/* ---------- three.js hero scene ---------- */
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+(function initHeroScene(){
+  const canvas = document.getElementById('hero-canvas');
+  if(!canvas || typeof THREE === 'undefined') return;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
+  camera.position.z = 8;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const geo = new THREE.IcosahedronGeometry(3, 1);
+  const mat = new THREE.MeshBasicMaterial({ color: 0xff3d8a, wireframe:true, transparent:true, opacity:0.32 });
+  const mesh = new THREE.Mesh(geo, mat);
+  scene.add(mesh);
+
+  const innerGeo = new THREE.IcosahedronGeometry(1.6, 0);
+  const innerMat = new THREE.MeshBasicMaterial({ color: 0x3f6df8, wireframe:true, transparent:true, opacity:0.26 });
+  const innerMesh = new THREE.Mesh(innerGeo, innerMat);
+  scene.add(innerMesh);
+
+  const count = 220;
+  const positions = new Float32Array(count*3);
+  for(let i=0;i<count*3;i++){ positions[i] = (Math.random()-0.5)*22; }
+  const pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const pMat = new THREE.PointsMaterial({ color:0x9b4dff, size:0.035, transparent:true, opacity:0.55 });
+  const particles = new THREE.Points(pGeo, pMat);
+  scene.add(particles);
+
+  let mouseX = 0, mouseY = 0;
+  window.addEventListener('mousemove', e => {
+    mouseX = (e.clientX / window.innerWidth - 0.5);
+    mouseY = (e.clientY / window.innerHeight - 0.5);
+  });
+
+  function resize(){
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+  window.addEventListener('resize', resize);
+
+  function animate(){
+    if(!prefersReducedMotion) requestAnimationFrame(animate);
+    mesh.rotation.x += 0.0016;
+    mesh.rotation.y += 0.0026;
+    innerMesh.rotation.x -= 0.001;
+    innerMesh.rotation.y -= 0.0018;
+    mesh.rotation.x += (mouseY*0.4 - mesh.rotation.x) * 0.01;
+    mesh.rotation.y += (mouseX*0.4 - mesh.rotation.y) * 0.01;
+    particles.rotation.y += 0.0005;
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
 </script>
 </body>
 </html>
