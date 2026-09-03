@@ -169,7 +169,7 @@
 
   /* ---------- HERO ---------- */
   .viewport{ position:relative; min-height:100vh; min-height:100svh; display:flex; flex-direction:column; justify-content:center; padding-top:76px; overflow:hidden; }
-  #hero-canvas{ position:absolute; inset:0; z-index:1; opacity:0.9; }
+  #hero-canvas{ position:fixed; inset:0; z-index:0; opacity:0.85; pointer-events:none; }
   .vp-corner{ position:absolute; font-family:var(--mono); font-size:11px; color:var(--text-faint); letter-spacing:.05em; z-index:2; }
   .vp-corner.tl{ top:100px; left:32px; } .vp-corner.tr{ top:100px; right:32px; text-align:right; }
   .vp-corner.bl{ bottom:32px; left:32px; } .vp-corner.br{ bottom:32px; right:32px; text-align:right; }
@@ -458,6 +458,7 @@
 </head>
 <body>
 
+<canvas id="hero-canvas"></canvas>
 <div class="aurora"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
 <div class="grain-grid"></div>
 <div class="cursor-glow" id="cursorGlow"></div>
@@ -499,7 +500,6 @@
 
   <!-- ================= HERO ================= -->
   <section class="viewport" id="viewport">
-    <canvas id="hero-canvas"></canvas>
     <div class="vp-corner tl">SCENE / 001</div>
     <div class="vp-corner tr" id="coord-readout">X 0000 &nbsp; Y 0000</div>
     <div class="vp-corner bl">RENDER — <span id="clock">--:--</span></div>
@@ -1153,19 +1153,23 @@ const io = new IntersectionObserver((entries) => {
 }, { threshold: 0.15 });
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-/* ---------- three.js hero scene ---------- */
+/* ---------- three.js scroll flythrough ---------- */
+/* The camera travels along a hand-placed path as the page scrolls, passing
+   near a small landmark shape by each major section. Path "waypoints" are
+   matched to your actual section positions on screen, so it stays roughly
+   aligned even if content heights change (recomputed on resize/load). */
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-(function initHeroScene(){
+(function initFlythroughScene(){
   const canvas = document.getElementById('hero-canvas');
   if(!canvas || typeof THREE === 'undefined') return;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
-  camera.position.z = 8;
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 120);
   const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+  // --- the original hero shape, now acting as the "opening" landmark ---
   const geo = new THREE.IcosahedronGeometry(3, 1);
   const mat = new THREE.MeshBasicMaterial({ color: 0xff3d8a, wireframe:true, transparent:true, opacity:0.32 });
   const mesh = new THREE.Mesh(geo, mat);
@@ -1176,14 +1180,89 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
   const innerMesh = new THREE.Mesh(innerGeo, innerMat);
   scene.add(innerMesh);
 
-  const count = 220;
+  // particle field spread across the whole depth of the journey, not just the hero
+  const count = 320;
   const positions = new Float32Array(count*3);
-  for(let i=0;i<count*3;i++){ positions[i] = (Math.random()-0.5)*22; }
+  for(let i=0;i<count;i++){
+    positions[i*3]   = (Math.random()-0.5) * 24;
+    positions[i*3+1] = (Math.random()-0.5) * 20;
+    positions[i*3+2] = (Math.random()-0.9) * 55;
+  }
   const pGeo = new THREE.BufferGeometry();
   pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   const pMat = new THREE.PointsMaterial({ color:0x9b4dff, size:0.035, transparent:true, opacity:0.55 });
   const particles = new THREE.Points(pGeo, pMat);
   scene.add(particles);
+
+  // --- camera path waypoints: one per section, hand-placed in 3D space ---
+  const CAMERA_WAYPOINTS = {
+    hero:       new THREE.Vector3(0, 0, 8),
+    about:      new THREE.Vector3(-4, 1.4, -3),
+    software:   new THREE.Vector3(4, -1.2, -11),
+    experience: new THREE.Vector3(-3.5, 1.6, -19),
+    work:       new THREE.Vector3(4, -1.6, -27),
+    contact:    new THREE.Vector3(0, 0.6, -35)
+  };
+  const SECTION_ORDER = ['hero','about','software','experience','work','contact'];
+
+  // --- small landmark shapes placed just off the camera's path near each stop ---
+  const landmarks = [];
+  function addLandmark(position, geometry, color, opacity){
+    const m = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color, wireframe:true, transparent:true, opacity }));
+    m.position.copy(position);
+    m.userData.spin = 0.002 + Math.random()*0.003;
+    scene.add(m);
+    landmarks.push(m);
+    return m;
+  }
+  addLandmark(new THREE.Vector3(-6.5, 2.2, -3), new THREE.TorusGeometry(1.1, 0.35, 10, 24), 0xff3d8a, 0.4);          // About
+  (function(){ // Toolkit — a small cluster of cubes
+    const group = new THREE.Group();
+    group.position.set(6.8, -0.6, -11);
+    for(let i=0;i<3;i++){
+      const c = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.7,0.7), new THREE.MeshBasicMaterial({ color:0x3f6df8, wireframe:true, transparent:true, opacity:0.4 }));
+      c.position.set(i*0.9 - 0.9, Math.sin(i)*0.4, 0);
+      group.add(c);
+    }
+    group.userData.spin = 0.003;
+    scene.add(group);
+    landmarks.push(group);
+  })();
+  addLandmark(new THREE.Vector3(-5.8, 2.4, -19), new THREE.IcosahedronGeometry(1, 0), 0x9b4dff, 0.4);               // Experience
+  addLandmark(new THREE.Vector3(6.8, -2, -27), new THREE.DodecahedronGeometry(1.2, 0), 0xff3d8a, 0.4);              // Renders
+  addLandmark(new THREE.Vector3(0, 2.6, -35), new THREE.IcosahedronGeometry(0.6, 1), 0x3f6df8, 0.55);               // Contact (beacon)
+
+  // --- map each waypoint's t (0..1) to real scroll progress based on section position ---
+  let breakpoints = [];
+  function computeBreakpoints(){
+    const maxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+    breakpoints = SECTION_ORDER.map(id => {
+      if(id === 'hero'){ return { t:0, pos:CAMERA_WAYPOINTS.hero }; }
+      const el = document.getElementById(id);
+      if(!el) return null;
+      const center = el.offsetTop + el.offsetHeight/2 - window.innerHeight/2;
+      const t = Math.min(Math.max(center / maxScroll, 0), 1);
+      return { t, pos:CAMERA_WAYPOINTS[id] };
+    }).filter(Boolean);
+    // keep strictly increasing so segment lookup below never divides by zero
+    for(let i=1;i<breakpoints.length;i++){
+      if(breakpoints[i].t <= breakpoints[i-1].t) breakpoints[i].t = breakpoints[i-1].t + 0.001;
+    }
+  }
+  computeBreakpoints();
+
+  function easeInOut(u){ return u*u*(3 - 2*u); }
+  function pathPositionAt(t){
+    t = Math.min(Math.max(t, 0), 1);
+    for(let i=0;i<breakpoints.length-1;i++){
+      const a = breakpoints[i], b = breakpoints[i+1];
+      if(t >= a.t && t <= b.t){
+        const u = easeInOut((t - a.t) / (b.t - a.t));
+        return a.pos.clone().lerp(b.pos, u);
+      }
+    }
+    return breakpoints[breakpoints.length-1].pos.clone();
+  }
 
   let mouseX = 0, mouseY = 0;
   window.addEventListener('mousemove', e => {
@@ -1195,18 +1274,39 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
     camera.aspect = window.innerWidth/window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    computeBreakpoints();
   }
   window.addEventListener('resize', resize);
+  window.addEventListener('load', computeBreakpoints); // re-measure once images settle section heights
+
+  if(prefersReducedMotion){
+    camera.position.copy(CAMERA_WAYPOINTS.hero);
+    camera.lookAt(0, 0, 0);
+    renderer.render(scene, camera);
+    return;
+  }
 
   function animate(){
-    if(!prefersReducedMotion) requestAnimationFrame(animate);
+    requestAnimationFrame(animate);
+
     mesh.rotation.x += 0.0016;
     mesh.rotation.y += 0.0026;
     innerMesh.rotation.x -= 0.001;
     innerMesh.rotation.y -= 0.0018;
-    mesh.rotation.x += (mouseY*0.4 - mesh.rotation.x) * 0.01;
-    mesh.rotation.y += (mouseX*0.4 - mesh.rotation.y) * 0.01;
-    particles.rotation.y += 0.0005;
+    particles.rotation.y += 0.0003;
+    landmarks.forEach(l => { l.rotation.x += l.userData.spin; l.rotation.y += l.userData.spin * 1.3; });
+
+    const maxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+    const progress = Math.min(Math.max(window.scrollY / maxScroll, 0), 1);
+
+    const targetPos = pathPositionAt(progress);
+    camera.position.lerp(targetPos, 0.055);
+
+    const lookTarget = pathPositionAt(Math.min(progress + 0.035, 1));
+    camera.lookAt(lookTarget);
+    camera.rotation.z += (mouseX * 0.05 - camera.rotation.z) * 0.02;
+    camera.rotation.x += mouseY * 0.01;
+
     renderer.render(scene, camera);
   }
   animate();
