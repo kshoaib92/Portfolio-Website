@@ -69,7 +69,6 @@
     font-family:var(--body);
     line-height:1.5;
     overflow-x:hidden;
-    position:relative;
   }
   @media (prefers-reduced-motion: reduce){
     *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
@@ -103,7 +102,7 @@
   .glass-strong{ background:var(--glass-bg-strong); }
 
   /* ---------- AMBIENT BACKGROUND ---------- */
-  .aurora{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  .aurora{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; transform:translateZ(0); -webkit-transform:translateZ(0); }
   .blob{ position:absolute; border-radius:50%; filter:blur(130px); opacity:0.45; mix-blend-mode:screen; }
   .blob-1{ width:640px; height:640px; background:var(--accent); top:-220px; left:-160px; animation:drift1 26s ease-in-out infinite; }
   .blob-2{ width:580px; height:580px; background:var(--blue); bottom:-200px; right:-140px; animation:drift2 32s ease-in-out infinite; }
@@ -117,6 +116,7 @@
       linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
     background-size:64px 64px;
+    transform:translateZ(0); -webkit-transform:translateZ(0);
   }
 
   .cursor-glow{
@@ -169,7 +169,7 @@
 
   /* ---------- HERO ---------- */
   .viewport{ position:relative; min-height:100vh; min-height:100svh; display:flex; flex-direction:column; justify-content:center; padding-top:76px; overflow:hidden; }
-  #hero-canvas{ position:fixed; inset:0; z-index:0; opacity:0.85; pointer-events:none; }
+  #hero-canvas{ position:fixed; inset:0; z-index:0; opacity:0.85; pointer-events:none; transform:translateZ(0); -webkit-transform:translateZ(0); }
   .vp-corner{ position:absolute; font-family:var(--mono); font-size:11px; color:var(--text-faint); letter-spacing:.05em; z-index:2; }
   .vp-corner.tl{ top:100px; left:32px; } .vp-corner.tr{ top:100px; right:32px; text-align:right; }
   .vp-corner.bl{ bottom:32px; left:32px; } .vp-corner.br{ bottom:32px; right:32px; text-align:right; }
@@ -357,7 +357,7 @@
   .card-video-badge{
     position:absolute; top:14px; right:14px; z-index:2; width:32px; height:32px; border-radius:50%;
     display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--text);
-    background:rgba(6,6,10,0.55); border:1px solid var(--glass-border); backdrop-filter:blur(6px);
+    background:rgba(6,6,10,0.55); border:1px solid var(--glass-border); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
   }
   .stage-nav{
     position:absolute; top:50%; transform:translateY(-50%); z-index:20; width:48px; height:48px; border-radius:50%;
@@ -370,8 +370,30 @@
   .stage-dot{ width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.18); transition:all .2s; }
   .stage-dot.active{ background:var(--accent); width:22px; border-radius:5px; }
 
+  /* ---------- CLIENTS (dual-row marquee) ---------- */
+  #clients .wrap{ margin-bottom:36px; }
+  #clients .stage-heading{ margin-bottom:0; }
+  .clients-marquee{
+    position:relative; width:100%; overflow:hidden; padding:10px 0;
+    -webkit-mask-image:linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+    mask-image:linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  }
+  .clients-marquee.row-offset{ padding-left:70px; }
+  .clients-marquee:hover .marquee-track{ animation-play-state:paused; }
+  .marquee-track{ display:flex; gap:20px; width:max-content; animation:marqueeLeft 34s linear infinite; }
+  .marquee-track.reverse{ animation-name:marqueeRight; animation-duration:40s; }
+  @keyframes marqueeLeft{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+  @keyframes marqueeRight{ from{ transform:translateX(-50%); } to{ transform:translateX(0); } }
+  .client-chip{
+    display:flex; align-items:center; gap:10px; padding:14px 22px; border-radius:999px; flex-shrink:0; white-space:nowrap;
+    background:rgba(255,255,255,0.04); border:1px solid var(--glass-border); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  }
+  .client-chip img{ height:22px; width:auto; object-fit:contain; filter:grayscale(100%) brightness(1.5) opacity(0.8); transition:filter .3s; }
+  .client-chip:hover img{ filter:grayscale(0%) brightness(1) opacity(1); }
+  .client-chip span{ font-family:var(--mono); font-size:13px; color:var(--text-dim); }
+
   /* ---------- MODAL ---------- */
-  .modal-backdrop{ position:fixed; inset:0; background:rgba(3,3,6,0.75); backdrop-filter:blur(8px); z-index:200; display:none; align-items:center; justify-content:center; padding:24px; }
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(3,3,6,0.75); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:200; display:none; align-items:center; justify-content:center; padding:24px; }
   .modal-backdrop.open{ display:flex; }
   .modal{ max-width:920px; width:100%; max-height:88vh; overflow-y:auto; }
   .modal-media-wrap{ position:relative; aspect-ratio:16/9; background:#000; border-radius:var(--radius) var(--radius) 0 0; overflow:hidden; }
@@ -383,7 +405,7 @@
   .modal-expand:hover{ border-color:var(--accent); color:var(--text); }
 
   .lightbox-backdrop{
-    position:fixed; inset:0; z-index:300; background:rgba(2,2,5,0.94); backdrop-filter:blur(10px);
+    position:fixed; inset:0; z-index:300; background:rgba(2,2,5,0.94); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
     display:none; align-items:center; justify-content:center; padding:40px;
   }
   .lightbox-backdrop.open{ display:flex; }
@@ -397,6 +419,13 @@
     display:flex; align-items:center; justify-content:center; color:var(--text);
   }
   .lightbox-close:hover{ border-color:var(--accent); color:var(--text); }
+  .lightbox-nav{
+    position:fixed; top:50%; transform:translateY(-50%); z-index:301; width:48px; height:48px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; color:var(--text); font-size:22px;
+  }
+  .lightbox-nav.prev{ left:24px; } .lightbox-nav.next{ right:24px; }
+  .lightbox-nav:hover{ border-color:var(--accent); color:var(--text); }
+  @media (max-width:700px){ .lightbox-nav{ display:none; } }
   .modal-nav{ position:absolute; top:50%; transform:translateY(-50%); width:42px; height:42px; display:flex; align-items:center; justify-content:center; color:var(--text); border-radius:50%; z-index:2; }
   .modal-nav:hover{ border-color:var(--accent); color:var(--text); }
   .modal-nav.prev{ left:16px; } .modal-nav.next{ right:16px; }
@@ -478,6 +507,7 @@
       <a href="#software">Toolkit</a>
       <a href="#experience">Experience</a>
       <a href="#work">Projects</a>
+      <a href="#clients">Clients</a>
       <a href="#contact">Contact</a>
     </div>
     <div class="nav-actions">
@@ -491,6 +521,7 @@
     <a href="#software">Toolkit</a>
     <a href="#experience">Experience</a>
     <a href="#work">Renders</a>
+    <a href="#clients">Clients</a>
     <a href="#contact">Contact</a>
     <a href="#" id="resumeNavMobile" class="btn-resume" download>⬇ Download résumé</a>
   </div>
@@ -577,6 +608,20 @@
     </div>
   </section>
 
+  <!-- ================= CLIENTS ================= -->
+  <section id="clients">
+    <div class="wrap">
+      <div class="eyebrow center reveal">Collaborations</div>
+      <h2 class="stage-heading reveal">Clients &amp; Studios</h2>
+    </div>
+    <div class="clients-marquee reveal">
+      <div id="clientsRow1"></div>
+    </div>
+    <div class="clients-marquee row-offset reveal">
+      <div id="clientsRow2"></div>
+    </div>
+  </section>
+
   <!-- ================= CONTACT ================= -->
   <section id="contact">
     <div class="wrap">
@@ -631,6 +676,8 @@
 <!-- ================= LIGHTBOX (full-size image/video view) ================= -->
 <div class="lightbox-backdrop" id="lightboxBackdrop">
   <button class="lightbox-close glass" id="lightboxClose" aria-label="Close full size view">✕</button>
+  <button class="lightbox-nav prev glass" id="lightboxPrev" aria-label="Previous">‹</button>
+  <button class="lightbox-nav next glass" id="lightboxNext" aria-label="Next">›</button>
   <div class="lightbox-inner" id="lightboxInner"></div>
 </div>
 
@@ -707,6 +754,20 @@ const CONFIG = {
       period: "July 2021 — Apr 2022",
       duties: "Supported the environment art team on a mobile RPG — modular kits, prop dressing, and bake/texture cleanup."
     },
+  ],
+
+  /* Clients/studios shown as two rows of scrolling logo chips.
+     - logoUrl (optional): a small transparent-background logo image.
+       Leave blank and the chip will just show the name text. */
+  clients: [
+    { name: "Nomad Studios", logoUrl: "" },
+    { name: "Bluecrest Interactive", logoUrl: "" },
+    { name: "Studio Halcyon", logoUrl: "" },
+    { name: "Ember Games", logoUrl: "" },
+    { name: "Vantage Films", logoUrl: "" },
+    { name: "Northlight Media", logoUrl: "" },
+    { name: "Aurora Interactive", logoUrl: "" },
+    { name: "Kestrel Animation", logoUrl: "" }
   ],
 
   email: "k.shoaib9227@gmail.com",
@@ -834,6 +895,35 @@ document.getElementById('year').textContent = new Date().getFullYear();
       <div class="software-name">${s.name}</div>
     </div>
   `).join('');
+})();
+
+/* Clients marquee — split into two rows, each duplicated once so the
+   translateX(-50%) loop animation is perfectly seamless. Rows scroll in
+   opposite directions and the second row starts with a slight offset. */
+(function(){
+  const clients = CONFIG.clients || [];
+  if(clients.length === 0) return;
+  const mid = Math.ceil(clients.length / 2);
+  const row1 = clients.slice(0, mid);
+  const row2 = clients.slice(mid).length ? clients.slice(mid) : clients;
+
+  function chipHTML(c){
+    return `
+      <div class="client-chip">
+        ${c.logoUrl ? `<img src="${c.logoUrl}" alt="${c.name} logo">` : ''}
+        <span>${c.name}</span>
+      </div>`;
+  }
+  function buildRow(containerId, list, reverse){
+    const container = document.getElementById(containerId);
+    if(!container) return;
+    const track = document.createElement('div');
+    track.className = 'marquee-track' + (reverse ? ' reverse' : '');
+    track.innerHTML = list.concat(list).map(chipHTML).join(''); // doubled for seamless loop
+    container.appendChild(track);
+  }
+  buildRow('clientsRow1', row1, false);
+  buildRow('clientsRow2', row2, true);
 })();
 
 /* Experience timeline */
@@ -1067,6 +1157,8 @@ document.getElementById('modalNext').addEventListener('click', () => { currentMe
 document.addEventListener('keydown', e => {
   if(lightboxBackdrop.classList.contains('open')){
     if(e.key === 'Escape') closeLightbox();
+    if(e.key === 'ArrowLeft'){ currentMediaIndex--; showModalMedia(); renderLightboxMedia(); }
+    if(e.key === 'ArrowRight'){ currentMediaIndex++; showModalMedia(); renderLightboxMedia(); }
     return;
   }
   if(!modalBackdrop.classList.contains('open')) return;
@@ -1078,19 +1170,24 @@ document.addEventListener('keydown', e => {
 /* ---------- lightbox (full-size view of the current modal media) ---------- */
 const lightboxBackdrop = document.getElementById('lightboxBackdrop');
 const lightboxInner = document.getElementById('lightboxInner');
-function openLightbox(){
-  const current = modalMediaWrap.querySelector('img, video');
-  if(!current) return;
+function renderLightboxMedia(){
+  const media = currentMedia[currentMediaIndex];
   lightboxInner.innerHTML = '';
   let el;
-  if(current.tagName === 'VIDEO'){
+  if(media.type === 'video'){
     el = document.createElement('video');
-    el.src = current.currentSrc || current.src; el.controls = true; el.autoplay = true; el.playsInline = true;
+    el.src = media.src; el.controls = true; el.autoplay = true; el.playsInline = true;
   } else {
     el = document.createElement('img');
-    el.src = current.src; el.alt = current.alt || '';
+    el.src = media.src; el.alt = currentProject ? currentProject.title : '';
   }
   lightboxInner.appendChild(el);
+  const multi = currentMedia.length > 1;
+  document.getElementById('lightboxPrev').style.display = multi ? 'flex' : 'none';
+  document.getElementById('lightboxNext').style.display = multi ? 'flex' : 'none';
+}
+function openLightbox(){
+  renderLightboxMedia();
   lightboxBackdrop.classList.add('open');
 }
 function closeLightbox(){
@@ -1099,6 +1196,8 @@ function closeLightbox(){
   lightboxInner.innerHTML = '';
   lightboxBackdrop.classList.remove('open');
 }
+document.getElementById('lightboxPrev').addEventListener('click', () => { currentMediaIndex--; showModalMedia(); renderLightboxMedia(); });
+document.getElementById('lightboxNext').addEventListener('click', () => { currentMediaIndex++; showModalMedia(); renderLightboxMedia(); });
 document.getElementById('modalExpand').addEventListener('click', openLightbox);
 document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
 lightboxBackdrop.addEventListener('click', e => { if(e.target === lightboxBackdrop) closeLightbox(); });
@@ -1165,7 +1264,13 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 120);
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
+  let renderer;
+  try{
+    renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true, powerPreference:'high-performance', failIfMajorPerformanceCaveat:false });
+  } catch(err){
+    console.warn('3D background disabled: WebGL context could not be created.', err);
+    return;
+  }
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
