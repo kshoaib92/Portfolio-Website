@@ -176,6 +176,60 @@
   #coord-readout{ color:var(--text); }
   @media (max-width:760px){ .vp-corner{ display:none; } }
 
+  /* ---------- PORTFOLIO vertical glitch text ---------- */
+  .portfolio-tag{
+    position:absolute; left:6px; top:50%; transform:translateY(-50%) rotate(180deg);
+    writing-mode:vertical-rl; font-family:var(--display); font-weight:800;
+    font-size:clamp(38px, 6.5vw, 84px); letter-spacing:0.14em; text-transform:uppercase;
+    z-index:2; pointer-events:none; opacity:0; white-space:nowrap;
+    background:linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.06) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
+  }
+  .portfolio-tag::before, .portfolio-tag::after{
+    content:attr(data-text); position:absolute; inset:0; writing-mode:vertical-rl;
+    -webkit-text-fill-color:currentColor; background:none; opacity:0; mix-blend-mode:screen;
+  }
+  .portfolio-tag::before{ color:var(--accent); }
+  .portfolio-tag::after{ color:var(--blue); }
+  @media (max-width:760px){ .portfolio-tag{ display:none; } }
+
+  .portfolio-tag.glitch-in{ animation:portfolioIn 0.7s steps(3) forwards; }
+  .portfolio-tag.glitch-in::before{ animation:portfolioGhostA 0.7s steps(3) forwards; }
+  .portfolio-tag.glitch-in::after{ animation:portfolioGhostB 0.7s steps(3) forwards; }
+  .portfolio-tag.glitch-out{ animation:portfolioOut 0.6s steps(3) forwards; }
+  .portfolio-tag.glitch-out::before{ animation:portfolioGhostA 0.6s steps(3) reverse; }
+  .portfolio-tag.glitch-out::after{ animation:portfolioGhostB 0.6s steps(3) reverse; }
+
+  @keyframes portfolioIn{
+    0%{ opacity:0; clip-path:inset(0 0 100% 0); }
+    25%{ opacity:1; clip-path:inset(58% 0 12% 0); }
+    45%{ clip-path:inset(8% 0 55% 0); }
+    65%{ clip-path:inset(40% 0 18% 0); }
+    85%{ clip-path:inset(0 0 0 0); }
+    100%{ opacity:1; clip-path:inset(0 0 0 0); }
+  }
+  @keyframes portfolioOut{
+    0%{ opacity:1; clip-path:inset(0 0 0 0); }
+    25%{ clip-path:inset(0 0 48% 0); }
+    45%{ clip-path:inset(42% 0 0 0); }
+    65%{ opacity:0.6; clip-path:inset(18% 0 30% 0); }
+    100%{ opacity:0; clip-path:inset(0 0 100% 0); }
+  }
+  @keyframes portfolioGhostA{
+    0%{ opacity:0; transform:translateY(0); }
+    25%{ opacity:0.6; transform:translateY(-6px); }
+    45%{ opacity:0.35; transform:translateY(4px); }
+    65%{ opacity:0.5; transform:translateY(-3px); }
+    100%{ opacity:0; transform:translateY(0); }
+  }
+  @keyframes portfolioGhostB{
+    0%{ opacity:0; transform:translateY(0); }
+    25%{ opacity:0.55; transform:translateY(6px); }
+    45%{ opacity:0.3; transform:translateY(-4px); }
+    65%{ opacity:0.45; transform:translateY(3px); }
+    100%{ opacity:0; transform:translateY(0); }
+  }
+
   .hero-inner{ position:relative; z-index:2; padding:0 32px; max-width:1180px; margin:0 auto; width:100%; }
   .hero-name{ font-family:var(--display); font-weight:700; letter-spacing:-0.02em; font-size:clamp(44px, 9vw, 104px); line-height:0.96; text-transform:uppercase; text-shadow:0 0 60px rgba(255,61,138,0.3); }
   .hero-name .accent-word{ color:var(--text); text-shadow:0 0 30px rgba(255,61,138,0.55), 0 0 60px rgba(63,109,248,0.4); }
@@ -370,28 +424,6 @@
   .stage-dot{ width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.18); transition:all .2s; }
   .stage-dot.active{ background:var(--accent); width:22px; border-radius:5px; }
 
-  /* ---------- CLIENTS (dual-row marquee) ---------- */
-  #clients .wrap{ margin-bottom:36px; }
-  #clients .stage-heading{ margin-bottom:0; }
-  .clients-marquee{
-    position:relative; width:100%; overflow:hidden; padding:10px 0;
-    -webkit-mask-image:linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
-    mask-image:linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
-  }
-  .clients-marquee.row-offset{ padding-left:70px; }
-  .clients-marquee:hover .marquee-track{ animation-play-state:paused; }
-  .marquee-track{ display:flex; gap:20px; width:max-content; animation:marqueeLeft 34s linear infinite; }
-  .marquee-track.reverse{ animation-name:marqueeRight; animation-duration:40s; }
-  @keyframes marqueeLeft{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
-  @keyframes marqueeRight{ from{ transform:translateX(-50%); } to{ transform:translateX(0); } }
-  .client-chip{
-    display:flex; align-items:center; gap:10px; padding:14px 22px; border-radius:999px; flex-shrink:0; white-space:nowrap;
-    background:rgba(255,255,255,0.04); border:1px solid var(--glass-border); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-  }
-  .client-chip img{ height:22px; width:auto; object-fit:contain; filter:grayscale(100%) brightness(1.5) opacity(0.8); transition:filter .3s; }
-  .client-chip:hover img{ filter:grayscale(0%) brightness(1) opacity(1); }
-  .client-chip span{ font-family:var(--mono); font-size:13px; color:var(--text-dim); }
-
   /* ---------- MODAL ---------- */
   .modal-backdrop{ position:fixed; inset:0; background:rgba(3,3,6,0.75); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:200; display:none; align-items:center; justify-content:center; padding:24px; }
   .modal-backdrop.open{ display:flex; }
@@ -507,7 +539,6 @@
       <a href="#software">Toolkit</a>
       <a href="#experience">Experience</a>
       <a href="#work">Projects</a>
-      <a href="#clients">Clients</a>
       <a href="#contact">Contact</a>
     </div>
     <div class="nav-actions">
@@ -521,7 +552,6 @@
     <a href="#software">Toolkit</a>
     <a href="#experience">Experience</a>
     <a href="#work">Renders</a>
-    <a href="#clients">Clients</a>
     <a href="#contact">Contact</a>
     <a href="#" id="resumeNavMobile" class="btn-resume" download>⬇ Download résumé</a>
   </div>
@@ -531,6 +561,7 @@
 
   <!-- ================= HERO ================= -->
   <section class="viewport" id="viewport">
+    <div class="portfolio-tag" id="portfolioTag" data-text="PORTFOLIO">PORTFOLIO</div>
     <div class="vp-corner tl">SCENE / 001</div>
     <div class="vp-corner tr" id="coord-readout">X 0000 &nbsp; Y 0000</div>
     <div class="vp-corner bl">RENDER — <span id="clock">--:--</span></div>
@@ -605,20 +636,6 @@
         <button class="stage-nav next glass" id="stageNext" aria-label="Next render">›</button>
       </div>
       <div class="stage-dots" id="stageDots"></div>
-    </div>
-  </section>
-
-  <!-- ================= CLIENTS ================= -->
-  <section id="clients">
-    <div class="wrap">
-      <div class="eyebrow center reveal">Collaborations</div>
-      <h2 class="stage-heading reveal">Clients &amp; Studios</h2>
-    </div>
-    <div class="clients-marquee reveal">
-      <div id="clientsRow1"></div>
-    </div>
-    <div class="clients-marquee row-offset reveal">
-      <div id="clientsRow2"></div>
     </div>
   </section>
 
@@ -756,23 +773,6 @@ const CONFIG = {
     },
   ],
 
-  /* Clients/studios shown as two rows of scrolling logo chips.
-     - logoUrl (optional): a small transparent-background logo image.
-       Leave blank and the chip will just show the name text. */
-  clients: [
-    { name: "TCS", logoUrl: "" },
-    { name: "Aadhar(UIDAI)", logoUrl: "" },
-    { name: "NBG", logoUrl: "" },
-    { name: "Pi Industries", logoUrl: "PI-logo-RGB-.png" },
-    { name: "Monotech", logoUrl: "" },
-    { name: "HFCL", logoUrl: "" },
-    { name: "Ralson", logoUrl: "" },
-    { name: "CDot", logoUrl: "" },
-    { name: "Gulf Oil", logoUrl: "" },
-    { name: "Tafe", logoUrl: "" },
-    { name: "Rajoo Engineers", logoUrl: "" }
-  ],
-
   email: "k.shoaib9227@gmail.com",
   // Link to your demo reel (YouTube/Vimeo/ArtStation video, etc.) — shown in Contact alongside LinkedIn and ArtStation.
   showreelLink: "https://vimeo.com/",
@@ -898,35 +898,6 @@ document.getElementById('year').textContent = new Date().getFullYear();
       <div class="software-name">${s.name}</div>
     </div>
   `).join('');
-})();
-
-/* Clients marquee — split into two rows, each duplicated once so the
-   translateX(-50%) loop animation is perfectly seamless. Rows scroll in
-   opposite directions and the second row starts with a slight offset. */
-(function(){
-  const clients = CONFIG.clients || [];
-  if(clients.length === 0) return;
-  const mid = Math.ceil(clients.length / 2);
-  const row1 = clients.slice(0, mid);
-  const row2 = clients.slice(mid).length ? clients.slice(mid) : clients;
-
-  function chipHTML(c){
-    return `
-      <div class="client-chip">
-        ${c.logoUrl ? `<img src="${c.logoUrl}" alt="${c.name} logo">` : ''}
-        <span>${c.name}</span>
-      </div>`;
-  }
-  function buildRow(containerId, list, reverse){
-    const container = document.getElementById(containerId);
-    if(!container) return;
-    const track = document.createElement('div');
-    track.className = 'marquee-track' + (reverse ? ' reverse' : '');
-    track.innerHTML = list.concat(list).map(chipHTML).join(''); // doubled for seamless loop
-    container.appendChild(track);
-  }
-  buildRow('clientsRow1', row1, false);
-  buildRow('clientsRow2', row2, true);
 })();
 
 /* Experience timeline */
@@ -1249,6 +1220,25 @@ window.addEventListener('scroll', () => {
   scrollProgress.style.width = pct + '%';
 });
 
+/* ---------- portfolio vertical glitch-text cycle ---------- */
+(function(){
+  const tag = document.getElementById('portfolioTag');
+  if(!tag) return;
+  function cycle(){
+    tag.classList.remove('glitch-out');
+    tag.classList.add('glitch-in');        // glitches in over 0.7s, then holds (forwards fill-mode)
+    setTimeout(() => {
+      tag.classList.remove('glitch-in');
+      tag.classList.add('glitch-out');     // glitches out over 0.6s, then holds hidden
+      setTimeout(() => {
+        tag.classList.remove('glitch-out');
+        setTimeout(cycle, 1500);           // pause before the next appearance
+      }, 650);
+    }, 700 + 5000); // glitch-in duration + 5s hold visible
+  }
+  setTimeout(cycle, 1200); // initial delay before first appearance
+})();
+
 /* ---------- scroll reveal ---------- */
 const io = new IntersectionObserver((entries) => {
   entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('in'); });
@@ -1309,7 +1299,7 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
     software:   new THREE.Vector3(4, -1.2, -11),
     experience: new THREE.Vector3(-3.5, 1.6, -19),
     work:       new THREE.Vector3(4, -1.6, -27),
-    contact:    new THREE.Vector3(0, 0.6, -35)
+    contact:    new THREE.Vector3(0, 0.8, -40)
   };
   const SECTION_ORDER = ['hero','about','software','experience','work','contact'];
 
@@ -1338,7 +1328,23 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
   })();
   addLandmark(new THREE.Vector3(-5.8, 2.4, -19), new THREE.IcosahedronGeometry(1, 0), 0x9b4dff, 0.4);               // Experience
   addLandmark(new THREE.Vector3(6.8, -2, -27), new THREE.DodecahedronGeometry(1.2, 0), 0xff3d8a, 0.4);              // Renders
-  addLandmark(new THREE.Vector3(0, 2.6, -35), new THREE.IcosahedronGeometry(0.6, 1), 0x3f6df8, 0.55);               // Contact (beacon)
+  addLandmark(new THREE.Vector3(-6, 1.8, -33), new THREE.TorusGeometry(0.9, 0.28, 8, 20), 0x9b4dff, 0.4);           // filler — fills the run-up to Contact
+  (function(){ // Contact — a beacon core with orbiting nodes, more presence than a single small shape
+    const group = new THREE.Group();
+    group.position.set(1, 1.1, -40);
+    const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.7, 1), new THREE.MeshBasicMaterial({ color:0x3f6df8, wireframe:true, transparent:true, opacity:0.6 }));
+    group.add(core);
+    const nodeCount = 6;
+    for(let i=0;i<nodeCount;i++){
+      const angle = (i / nodeCount) * Math.PI * 2;
+      const node = new THREE.Mesh(new THREE.IcosahedronGeometry(0.18, 0), new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0xff3d8a : 0x3f6df8, wireframe:true, transparent:true, opacity:0.55 }));
+      node.position.set(Math.cos(angle) * 1.8, Math.sin(angle) * 0.7, Math.sin(angle) * 0.9);
+      group.add(node);
+    }
+    group.userData.spin = 0.0035;
+    scene.add(group);
+    landmarks.push(group);
+  })();
 
   // --- map each waypoint's t (0..1) to real scroll progress based on section position ---
   let breakpoints = [];
