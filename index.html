@@ -104,6 +104,7 @@
   /* ---------- AMBIENT BACKGROUND ---------- */
   .aurora{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; transform:translateZ(0); -webkit-transform:translateZ(0); }
   .blob{ position:absolute; border-radius:50%; filter:blur(130px); opacity:0.45; mix-blend-mode:screen; }
+  @media (pointer:coarse) and (min-width:600px){ .blob{ filter:blur(80px); } }
   .blob-1{ width:640px; height:640px; background:var(--accent); top:-220px; left:-160px; animation:drift1 26s ease-in-out infinite; }
   .blob-2{ width:580px; height:580px; background:var(--blue); bottom:-200px; right:-140px; animation:drift2 32s ease-in-out infinite; }
   .blob-3{ width:440px; height:440px; background:var(--violet); top:38%; left:55%; animation:drift3 22s ease-in-out infinite; opacity:0.3; }
@@ -191,7 +192,7 @@
   }
   .portfolio-tag::before{ color:var(--accent); }
   .portfolio-tag::after{ color:var(--blue); }
-  @media (max-width:760px){ .portfolio-tag{ display:none; } }
+  @media (max-width:1360px){ .portfolio-tag{ display:none; } }
 
   .portfolio-tag.glitch-in{ animation:portfolioIn 0.7s steps(3) forwards; }
   .portfolio-tag.glitch-in::before{ animation:portfolioGhostA 0.7s steps(3) forwards; }
@@ -1265,7 +1266,8 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
     return;
   }
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const isTouchTablet = navigator.maxTouchPoints > 1 && Math.min(window.innerWidth, window.innerHeight) >= 600;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isTouchTablet ? 1.5 : 2));
 
   // --- the original hero shape, now acting as the "opening" landmark ---
   const geo = new THREE.IcosahedronGeometry(3, 1);
@@ -1279,7 +1281,7 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
   scene.add(innerMesh);
 
   // particle field spread across the whole depth of the journey, not just the hero
-  const count = 320;
+  const count = 140;
   const positions = new Float32Array(count*3);
   for(let i=0;i<count;i++){
     positions[i*3]   = (Math.random()-0.5) * 24;
@@ -1304,6 +1306,8 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
   const SECTION_ORDER = ['hero','about','software','experience','work','contact'];
 
   // --- small landmark shapes placed just off the camera's path near each stop ---
+  // (kept deliberately sparse — a few widely-spaced shapes read as intentional,
+  // a dozen of them all in view at once just reads as clutter)
   const landmarks = [];
   function addLandmark(position, geometry, color, opacity){
     const m = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color, wireframe:true, transparent:true, opacity }));
@@ -1313,31 +1317,30 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
     landmarks.push(m);
     return m;
   }
-  addLandmark(new THREE.Vector3(-6.5, 2.2, -3), new THREE.TorusGeometry(1.1, 0.35, 10, 24), 0xff3d8a, 0.4);          // About
-  (function(){ // Toolkit — a small cluster of cubes
+  addLandmark(new THREE.Vector3(-6.5, 2.2, -6), new THREE.TorusGeometry(1.1, 0.35, 10, 24), 0xff3d8a, 0.35);         // About — pushed back from the hero mesh so it doesn't crowd it
+  (function(){ // Toolkit — a small pair of cubes (was three)
     const group = new THREE.Group();
-    group.position.set(6.8, -0.6, -11);
-    for(let i=0;i<3;i++){
+    group.position.set(6.8, -0.6, -13);
+    for(let i=0;i<2;i++){
       const c = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.7,0.7), new THREE.MeshBasicMaterial({ color:0x3f6df8, wireframe:true, transparent:true, opacity:0.4 }));
-      c.position.set(i*0.9 - 0.9, Math.sin(i)*0.4, 0);
+      c.position.set(i*0.9 - 0.45, Math.sin(i)*0.4, 0);
       group.add(c);
     }
     group.userData.spin = 0.003;
     scene.add(group);
     landmarks.push(group);
   })();
-  addLandmark(new THREE.Vector3(-5.8, 2.4, -19), new THREE.IcosahedronGeometry(1, 0), 0x9b4dff, 0.4);               // Experience
-  addLandmark(new THREE.Vector3(6.8, -2, -27), new THREE.DodecahedronGeometry(1.2, 0), 0xff3d8a, 0.4);              // Renders
-  addLandmark(new THREE.Vector3(-6, 1.8, -33), new THREE.TorusGeometry(0.9, 0.28, 8, 20), 0x9b4dff, 0.4);           // filler — fills the run-up to Contact
-  (function(){ // Contact — a beacon core with orbiting nodes, more presence than a single small shape
+  addLandmark(new THREE.Vector3(-5.8, 2.4, -19), new THREE.IcosahedronGeometry(1, 0), 0x9b4dff, 0.35);              // Experience
+  addLandmark(new THREE.Vector3(6.8, -2, -27), new THREE.DodecahedronGeometry(1.2, 0), 0xff3d8a, 0.35);             // Renders
+  (function(){ // Contact — a beacon core with a few orbiting nodes (was six)
     const group = new THREE.Group();
     group.position.set(1, 1.1, -40);
-    const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.7, 1), new THREE.MeshBasicMaterial({ color:0x3f6df8, wireframe:true, transparent:true, opacity:0.6 }));
+    const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.7, 1), new THREE.MeshBasicMaterial({ color:0x3f6df8, wireframe:true, transparent:true, opacity:0.55 }));
     group.add(core);
-    const nodeCount = 6;
+    const nodeCount = 3;
     for(let i=0;i<nodeCount;i++){
       const angle = (i / nodeCount) * Math.PI * 2;
-      const node = new THREE.Mesh(new THREE.IcosahedronGeometry(0.18, 0), new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0xff3d8a : 0x3f6df8, wireframe:true, transparent:true, opacity:0.55 }));
+      const node = new THREE.Mesh(new THREE.IcosahedronGeometry(0.18, 0), new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0xff3d8a : 0x3f6df8, wireframe:true, transparent:true, opacity:0.5 }));
       node.position.set(Math.cos(angle) * 1.8, Math.sin(angle) * 0.7, Math.sin(angle) * 0.9);
       group.add(node);
     }
