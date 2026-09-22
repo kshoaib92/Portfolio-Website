@@ -974,7 +974,7 @@ document.getElementById('year').textContent = new Date().getFullYear();
       const line = document.createElementNS(svgNS, 'line');
       line.setAttribute('x1', conn.a.x); line.setAttribute('y1', conn.a.y);
       line.setAttribute('x2', conn.b.x); line.setAttribute('y2', conn.b.y);
-      line.setAttribute('stroke', 'rgba(255,255,255,0.08)');
+      line.setAttribute('stroke', 'rgba(255,255,255,0.5)');
       line.setAttribute('stroke-width', '1');
       svg.appendChild(line);
     });
@@ -989,12 +989,12 @@ document.getElementById('year').textContent = new Date().getFullYear();
     const color = Math.random() < 0.5 ? '#ff3d8a' : '#3f6df8';
 
     const dot = document.createElementNS(svgNS, 'circle');
-    dot.setAttribute('r', 3.5);
+    dot.setAttribute('r', 5);
     dot.setAttribute('fill', color);
     dot.style.filter = `drop-shadow(0 0 5px ${color})`;
     svg.appendChild(dot);
 
-    const duration = 850;
+    const duration = 400;
     const startTime = performance.now();
     function step(now){
       const t = Math.min((now - startTime) / duration, 1);
@@ -1028,7 +1028,7 @@ document.getElementById('year').textContent = new Date().getFullYear();
   });
 
   if(!reduceMotion){
-    pulseTimer = setInterval(spawnPulse, 750);
+    pulseTimer = setInterval(spawnPulse, 300);
     setTimeout(spawnPulse, 900);
   }
 })();
