@@ -354,6 +354,25 @@
   }
   .software-name{ font-family:var(--mono); font-size:12px; color:var(--text-dim); }
 
+  .software-network{ position:relative; }
+  .software-connections{
+    position:absolute; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; overflow:visible;
+  }
+  .software-grid{ position:relative; z-index:1; }
+  .software-logo.pulse-hit{ animation:pulseHit 0.6s ease-out; }
+  @keyframes pulseHit{
+    0%{
+      box-shadow:0 14px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -10px 18px rgba(0,0,0,0.22), 0 0 0 rgba(255,61,138,0);
+    }
+    35%{
+      box-shadow:0 14px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -10px 18px rgba(0,0,0,0.22), 0 0 28px rgba(255,61,138,0.55);
+      border-color:rgba(255,255,255,0.4);
+    }
+    100%{
+      box-shadow:0 14px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -10px 18px rgba(0,0,0,0.22), 0 0 0 rgba(255,61,138,0);
+    }
+  }
+
   /* ---------- EXPERIENCE (timeline) ---------- */
   .experience-list{ position:relative; }
   .timeline-track{ position:absolute; left:14px; top:8px; bottom:8px; width:1px; background:linear-gradient(var(--accent), var(--blue)); opacity:0.35; }
@@ -609,7 +628,10 @@
       <div class="section-head reveal">
         <h2 class="section-title">Software</h2>
       </div>
-      <div class="software-grid" id="softwareGrid"></div>
+      <div class="software-network" id="softwareNetwork">
+        <svg class="software-connections" id="softwareConnections"></svg>
+        <div class="software-grid" id="softwareGrid"></div>
+      </div>
     </div>
   </section>
 
@@ -907,6 +929,108 @@ document.getElementById('year').textContent = new Date().getFullYear();
       <div class="software-name">${s.name}</div>
     </div>
   `).join('');
+})();
+
+/* ---------- software connection network: faint traces + traveling pulses ---------- */
+(function(){
+  const network = document.getElementById('softwareNetwork');
+  const grid = document.getElementById('softwareGrid');
+  const svg = document.getElementById('softwareConnections');
+  if(!network || !grid || !svg) return;
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let connections = []; // { a:{x,y,cardEl}, b:{x,y,cardEl} }
+  let pulseTimer = null;
+
+  function getColumnCount(){
+    const cols = window.getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean);
+    return cols.length || 1;
+  }
+
+  function buildNetwork(){
+    svg.innerHTML = '';
+    connections = [];
+    const cards = Array.from(grid.querySelectorAll('.software-card'));
+    if(cards.length < 2) return;
+
+    const netRect = network.getBoundingClientRect();
+    svg.setAttribute('width', netRect.width);
+    svg.setAttribute('height', netRect.height);
+
+    const points = cards.map(card => {
+      const r = card.getBoundingClientRect();
+      return { x: r.left - netRect.left + r.width/2, y: r.top - netRect.top + r.height/2, cardEl: card };
+    });
+
+    const cols = getColumnCount();
+    points.forEach((p, i) => {
+      const sameRow = (i + 1) % cols !== 0 && i + 1 < points.length;
+      if(sameRow) connections.push({ a: p, b: points[i+1] });
+      if(i + cols < points.length) connections.push({ a: p, b: points[i+cols] });
+    });
+
+    connections.forEach(conn => {
+      const line = document.createElementNS(svgNS, 'line');
+      line.setAttribute('x1', conn.a.x); line.setAttribute('y1', conn.a.y);
+      line.setAttribute('x2', conn.b.x); line.setAttribute('y2', conn.b.y);
+      line.setAttribute('stroke', 'rgba(255,255,255,0.08)');
+      line.setAttribute('stroke-width', '1');
+      svg.appendChild(line);
+    });
+  }
+
+  function spawnPulse(){
+    if(connections.length === 0) return;
+    const conn = connections[Math.floor(Math.random() * connections.length)];
+    const reverse = Math.random() < 0.5;
+    const start = reverse ? conn.b : conn.a;
+    const end = reverse ? conn.a : conn.b;
+    const color = Math.random() < 0.5 ? '#ff3d8a' : '#3f6df8';
+
+    const dot = document.createElementNS(svgNS, 'circle');
+    dot.setAttribute('r', 3.5);
+    dot.setAttribute('fill', color);
+    dot.style.filter = `drop-shadow(0 0 5px ${color})`;
+    svg.appendChild(dot);
+
+    const duration = 850;
+    const startTime = performance.now();
+    function step(now){
+      const t = Math.min((now - startTime) / duration, 1);
+      const x = start.x + (end.x - start.x) * t;
+      const y = start.y + (end.y - start.y) * t;
+      dot.setAttribute('cx', x);
+      dot.setAttribute('cy', y);
+      dot.setAttribute('opacity', t < 0.12 ? t/0.12 : t > 0.85 ? (1-t)/0.15 : 1);
+      if(t < 1){
+        requestAnimationFrame(step);
+      } else {
+        dot.remove();
+        const logo = end.cardEl.querySelector('.software-logo');
+        if(logo){
+          logo.classList.remove('pulse-hit');
+          void logo.offsetWidth; // restart animation if it's already mid-flash
+          logo.classList.add('pulse-hit');
+          setTimeout(() => logo.classList.remove('pulse-hit'), 650);
+        }
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  buildNetwork();
+  window.addEventListener('load', buildNetwork); // re-measure once logos/fonts settle
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(buildNetwork, 200);
+  });
+
+  if(!reduceMotion){
+    pulseTimer = setInterval(spawnPulse, 750);
+    setTimeout(spawnPulse, 900);
+  }
 })();
 
 /* Experience timeline */
@@ -1279,17 +1403,17 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
 
   // --- the original hero shape, now acting as the "opening" landmark ---
   const geo = new THREE.IcosahedronGeometry(3, 1);
-  const mat = new THREE.MeshBasicMaterial({ color: 0xff3d8a, wireframe:true, transparent:true, opacity:0.32 });
+  const mat = new THREE.MeshBasicMaterial({ color: 0xff3d8a, wireframe:true, transparent:true, opacity:0.24 });
   const mesh = new THREE.Mesh(geo, mat);
   scene.add(mesh);
 
   const innerGeo = new THREE.IcosahedronGeometry(1.6, 0);
-  const innerMat = new THREE.MeshBasicMaterial({ color: 0x3f6df8, wireframe:true, transparent:true, opacity:0.26 });
+  const innerMat = new THREE.MeshBasicMaterial({ color: 0x3f6df8, wireframe:true, transparent:true, opacity:0.18 });
   const innerMesh = new THREE.Mesh(innerGeo, innerMat);
   scene.add(innerMesh);
 
   // particle field spread across the whole depth of the journey, not just the hero
-  const count = 140;
+  const count = 100;
   const positions = new Float32Array(count*3);
   for(let i=0;i<count;i++){
     positions[i*3]   = (Math.random()-0.5) * 24;
@@ -1325,19 +1449,7 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
     landmarks.push(m);
     return m;
   }
-  addLandmark(new THREE.Vector3(-6.5, 2.2, -6), new THREE.TorusGeometry(1.1, 0.35, 10, 24), 0xff3d8a, 0.35);         // About — pushed back from the hero mesh so it doesn't crowd it
-  (function(){ // Toolkit — a small pair of cubes (was three)
-    const group = new THREE.Group();
-    group.position.set(6.8, -0.6, -13);
-    for(let i=0;i<2;i++){
-      const c = new THREE.Mesh(new THREE.BoxGeometry(0.7,0.7,0.7), new THREE.MeshBasicMaterial({ color:0x3f6df8, wireframe:true, transparent:true, opacity:0.4 }));
-      c.position.set(i*0.9 - 0.45, Math.sin(i)*0.4, 0);
-      group.add(c);
-    }
-    group.userData.spin = 0.003;
-    scene.add(group);
-    landmarks.push(group);
-  })();
+  addLandmark(new THREE.Vector3(-6.5, 2.2, -10), new THREE.TorusGeometry(1.1, 0.35, 10, 24), 0xff3d8a, 0.2);         // About — pushed further back and dimmer so the hero view stays calm
   addLandmark(new THREE.Vector3(-5.8, 2.4, -19), new THREE.IcosahedronGeometry(1, 0), 0x9b4dff, 0.35);              // Experience
   addLandmark(new THREE.Vector3(6.8, -2, -27), new THREE.DodecahedronGeometry(1.2, 0), 0xff3d8a, 0.35);             // Renders
   (function(){ // Contact — a beacon core with a few orbiting nodes (was six)
